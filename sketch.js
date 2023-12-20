@@ -48,7 +48,6 @@ function setup() {
 function draw() {
     background(200); // Table background color
     drawTable();
-    //drawBalls();
     balls.forEach(ball => ball.draw());
 
     drawCue();
@@ -59,6 +58,8 @@ function draw() {
 function windowResized() {
     resizeSketch();
     resizeCanvas(canvasWidth, canvasHeight);
+    balls = [];
+    initializeBalls();
 }
 
 function resizeSketch() {
