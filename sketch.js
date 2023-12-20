@@ -19,6 +19,9 @@ class Ball {
         ellipse(this.body.position.x, this.body.position.y, this.diameter, this.diameter);
     }
 }
+
+var cushions = [];
+
 var balls = [];
 var cueBall;
 
@@ -57,6 +60,24 @@ var scale;
 
 var canvasWidth, canvasHeight;
 
+class Cushion {
+    constructor(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        // Create a static Matter.js body for the cushion
+        this.body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: true });
+        Matter.World.add(world, this.body);
+    }
+
+    draw() {
+        fill(80); // Cushion color
+        noStroke();
+        rect(this.x, this.y, this.width, this.height);
+    }
+}
+
 let baulkLineX;
 
 function setup() {
@@ -68,14 +89,19 @@ function setup() {
     initializeBalls();
     cue = new Cue(20, canvasHeight / 2, cueLength, 0);
     cue.draw();
+    createCushions();
 }
 
 function draw() {
     background(200); // Table background color
     drawTable();
+    cushions.forEach(cushion => cushion.draw());
     balls.forEach(ball => ball.draw());
 
+    createCushions();
+    //updateCue();
     cue.draw();
+    //applyForceToCueBall();
     handleCollisions();
     // Update physics engine
 }
@@ -183,36 +209,41 @@ function initializeBalls() {
     balls.push(new Ball(blackBallX, redsTriangleStartY, ballDiameter, 'black'));
 }
 
-function drawBalls() {
+function createCushions() {
+    /**
+     * let cushionThickness = 4 * scale; // cushion thickness ~ 4 inches
+    fill(0);
+    // Top and bottom cushions
+    let topCushion = Matter.Bodies.rectangle(cueLength * 2.5, cueLength * 2.5, cueLength * 2.5 + tableWidth, cueLength * 2.5 + cushionThickness, { isStatic: true });
+    let bottomCushion = Matter.Bodies.rectangle(cueLength * 2.5, cueLength * 2.5 + tableHeight - cushionThickness, cueLength * 2.5 + tableWidth, cueLength * 2.5 + tableHeight, { isStatic: true });
+    // Left and right cushions
+    let leftCushion = Matter.Bodies.rectangle(canvasWidth / 2 - tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight, { isStatic: true });
+    let rightCushion = Matter.Bodies.rectangle(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight, { isStatic: true });
 
-    let pinkBallX = canvasWidth / 2 + tableWidth / 5;
-    let pinkBallY = canvasHeight / 2; // Center of the table height-wise
-    fill('pink');
-    ellipse(pinkBallX, pinkBallY, ballDiameter, ballDiameter);
-    let redsTriangleStartX = canvasWidth / 2 + tableWidth / 4.3;
-    let redsTriangleStartY = canvasHeight / 2;
-    let rowLength = 5;
-    for (let row = 0; row < rowLength; row++) {
-        for (let col = 0; col <= row; col++) {
-            let x = redsTriangleStartX + row * ballDiameter;
-            let y = redsTriangleStartY + row * ballDiameter / 2 - col * ballDiameter;
-            fill('red');
-            ellipse(x, y, ballDiameter, ballDiameter);
-        }
-    }
-
-    // Position the yellow, green, and brown balls on the baulk line
-    drawColoredBall('yellow', baulkLineX, pinkBallY + 11.5 * scale);
-    drawColoredBall('green', baulkLineX, pinkBallY - 11.5 * scale);
-    drawColoredBall('brown', baulkLineX, pinkBallY);
-
-    // Blue ball at the center of the table
-    drawColoredBall('blue', canvasWidth / 2, canvasHeight / 2);
-
-    let blackBallX = redsTriangleStartX + 7 * ballDiameter;
-    let blackBallY = pinkBallY;
-    drawColoredBall('black', blackBallX, blackBallY);
+    Matter.World.add(world, [topCushion, bottomCushion, leftCushion, rightCushion]);
+     */
+    let cushionThickness = 4 * scale;
+    // Create cushion objects and add to the cushions array
+    cushions.push(new Cushion(canvasWidth / 2, canvasHeight / 2 - tableHeight / 2, tableWidth, cushionThickness)); // Top cushion
+    cushions.push(new Cushion(canvasWidth / 2, canvasHeight / 2 + tableHeight / 2, tableWidth, cushionThickness)); // Bottom cushion
+    cushions.push(new Cushion(canvasWidth / 2 - tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight)); // Left cushion
+    cushions.push(new Cushion(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight)); // Right cushion
 }
+
+function updateCue() {
+    let cueEndX = cue.position.x + cue.length * cos(cue.angle);
+    let cueEndY = cue.position.y + cue.length * sin(cue.angle);
+    let mouseAngle = atan2(mouseY - cueEndY, mouseX - cueEndX);
+    cue.angle = mouseAngle;
+}
+
+function applyForceToCueBall() {
+    let forceMagnitude = 0.02 * cueLength; // Adjust force as needed
+    let forceDirection = p5.Vector.fromAngle(cue.angle);
+    let force = forceDirection.mult(forceMagnitude);
+    Matter.Body.applyForce(cueBall.body, cueBall.body.position, force);
+}
+
 
 function handleCollisions() {
     // Handle collisions and update game state
