@@ -21,7 +21,30 @@ class Ball {
 }
 var balls = [];
 var cueBall;
+
+class Cue {
+    constructor(x, y, length, angle) {
+        this.position = createVector(x, y);
+        this.length = length;
+        this.angle = angle;
+        // Additional properties as needed
+    }
+
+    draw() {
+        push();
+        stroke(139, 69, 19);
+        fill(0);
+        translate(this.position.x, this.position.y);
+        rotate(this.angle);
+        line(0, 0, this.length, 0); // Drawing the cue as a line
+        pop();
+    }
+
+    // Add method to apply force to the cue ball
+}
+
 var cue;
+var cueLength;
 
 //matter.js 
 var engine, world;
@@ -43,6 +66,8 @@ function setup() {
     world = engine.world;
     drawTable();
     initializeBalls();
+    cue = new Cue(20, canvasHeight / 2, cueLength, 0);
+    cue.draw();
 }
 
 function draw() {
@@ -50,7 +75,7 @@ function draw() {
     drawTable();
     balls.forEach(ball => ball.draw());
 
-    drawCue();
+    cue.draw();
     handleCollisions();
     // Update physics engine
 }
@@ -60,6 +85,7 @@ function windowResized() {
     resizeCanvas(canvasWidth, canvasHeight);
     balls = [];
     initializeBalls();
+    cue = new Cue(20, canvasHeight / 2, cueLength, 0);
 }
 
 function resizeSketch() {
@@ -77,7 +103,7 @@ function resizeSketch() {
     pocketSize = ballDiameter * 1.5;
 
     // Scaled cue length (same scale factor)
-    var cueLength = 58 * scale;
+    cueLength = 58 * scale;
 
     // Adjust canvas size 
     canvasWidth = tableWidth + cueLength * 2.5; // 1.25 times cue length as buffer on each side
@@ -186,10 +212,6 @@ function drawBalls() {
     let blackBallX = redsTriangleStartX + 7 * ballDiameter;
     let blackBallY = pinkBallY;
     drawColoredBall('black', blackBallX, blackBallY);
-}
-
-function drawCue() {
-    // Draw and manipulate cue
 }
 
 function handleCollisions() {
