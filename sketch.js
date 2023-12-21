@@ -1,54 +1,16 @@
-
 //global variables 
 var tableWidth, tableHeight;
 var ballDiameter, pocketSize;
-
-class Ball {
-    constructor(x, y, diameter, color) {
-        this.x = x;
-        this.y = y;
-        this.diameter = diameter;
-        this.color = color;
-        this.body = Matter.Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
-        // Add body to Matter.World in sketch.js
-        Matter.World.add(world, this.body);
-    }
-
-    draw() {
-        fill(this.color);
-        ellipse(this.body.position.x, this.body.position.y, this.diameter, this.diameter);
-    }
-}
-
 var cushions = [];
 
 var balls = [];
 var cueBall;
 
-class Cue {
-    constructor(x, y, length, angle) {
-        this.position = createVector(x, y);
-        this.length = length;
-        this.angle = angle;
-        // Additional properties as needed
-    }
-
-    draw() {
-        push();
-        stroke(139, 69, 19);
-        fill(0);
-        translate(this.position.x, this.position.y);
-        rotate(this.angle);
-        line(0, 0, this.length, 0); // Drawing the cue as a line
-        pop();
-    }
-
-    // Add method to apply force to the cue ball
-}
-
 var cue;
 var cueLength;
 
+var isDraggingCueBall = false;
+var isDraggingCue = false;
 //matter.js 
 var engine, world;
 
@@ -60,24 +22,6 @@ var scale;
 
 var canvasWidth, canvasHeight;
 
-class Cushion {
-    constructor(x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        // Create a static Matter.js body for the cushion
-        this.body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: true });
-        Matter.World.add(world, this.body);
-    }
-
-    draw() {
-        fill(80); // Cushion color
-        noStroke();
-        rect(this.x, this.y, this.width, this.height);
-    }
-}
-
 let baulkLineX;
 
 function setup() {
@@ -87,8 +31,11 @@ function setup() {
     world = engine.world;
     drawTable();
     initializeBalls();
+
+    cueBall = new CueBall(cueLength * 1.55, canvasHeight / 2, ballDiameter);
+
     cue = new Cue(20, canvasHeight / 2, cueLength, 0);
-    cue.draw();
+    //cue.draw();
     createCushions();
 }
 
@@ -100,6 +47,7 @@ function draw() {
 
     createCushions();
     //updateCue();
+    cueBall.draw();
     cue.draw();
     //applyForceToCueBall();
     handleCollisions();
@@ -107,18 +55,33 @@ function draw() {
 }
 
 function windowResized() {
+    // Store the old relative position
+    let relativeX = (cueBall.body.position.x - canvasWidth / 2) / tableWidth;
+    let relativeY = (cueBall.body.position.y - canvasHeight / 2) / tableHeight;
+
     resizeSketch();
     resizeCanvas(canvasWidth, canvasHeight);
+
+    // Reinitialize cushions, balls, and cue
+    cushions = [];
+    createCushions();
     balls = [];
     initializeBalls();
+
+    // Calculate the new position
+    let newCueBallX = canvasWidth / 2 + relativeX * tableWidth;
+    let newCueBallY = canvasHeight / 2 + relativeY * tableHeight;
+    Matter.Body.setPosition(cueBall.body, { x: newCueBallX, y: newCueBallY });
+
     cue = new Cue(20, canvasHeight / 2, cueLength, 0);
 }
+
 
 function resizeSketch() {
     /**
      * windowWidth / (144 + 58 * 2): This part calculates a scaling factor based on the width of the browser window (windowWidth). The denominator (144 + 58 * 2) represents the full length of the snooker table (144 inches/12 ft) plus two and a half times the length of the cue (58 inches) on either side. This calculation determines how much the full-size table and cue should be scaled down to fit the window width.
      * windowHeight / (72 + 58 * 2): Similarly, this calculates a scaling factor based on the height of the browser window (windowHeight). Here, 72 inches (6 ft) is half the length of the snooker table, accounting for the 2:1 aspect ratio of a standard table, and again 58 inches is the cue length, considered on both top and bottom of the table.
-     * I choose the smaller of these two scale factors because it ensures that the entire table and cues will fit within the viewport, irrespective of whether the limiting dimension is width or height.
+     * I chose the smaller of these two scale factors because it ensures that the entire table and cues will fit within the viewport, irrespective of whether the limiting dimension is width or height.
      */
     scale = min(windowWidth / (144 + 58 * 2.5), windowHeight / (72 + 58 * 2.5));
 
@@ -136,6 +99,34 @@ function resizeSketch() {
     canvasHeight = tableHeight + cueLength * 2.5; // 1.25 times cue length as buffer on top and bottom
 }
 
+function mousePressed() {
+    // Check if the mouse is over the cue ball
+    if (dist(mouseX, mouseY, cueBall.body.position.x, cueBall.body.position.y) < cueBall.diameter / 2) {
+        isDraggingCueBall = true;
+    }
+    // Check if the mouse is close to the cue (anywhere on the cue, not just the end)
+    else if (dist(mouseX, mouseY, cue.body.position.x, cue.body.position.y) < cue.length / 2) {
+        isDraggingCue = true;
+    }
+}
+
+function mouseDragged() {
+    // Move the cue ball with the mouse
+    if (isDraggingCueBall) {
+        Matter.Body.setPosition(cueBall.body, { x: mouseX, y: mouseY });
+    }
+
+    // Move the cue with the mouse
+    if (isDraggingCue) {
+        cue.setPosition(mouseX, mouseY);
+    }
+}
+
+function mouseReleased() {
+    isDraggingCueBall = false;
+    isDraggingCue = false;
+    // Implement cue logic to hit the ball
+}
 
 function drawTable() {
     // Set the fill color for the table
@@ -210,18 +201,6 @@ function initializeBalls() {
 }
 
 function createCushions() {
-    /**
-     * let cushionThickness = 4 * scale; // cushion thickness ~ 4 inches
-    fill(0);
-    // Top and bottom cushions
-    let topCushion = Matter.Bodies.rectangle(cueLength * 2.5, cueLength * 2.5, cueLength * 2.5 + tableWidth, cueLength * 2.5 + cushionThickness, { isStatic: true });
-    let bottomCushion = Matter.Bodies.rectangle(cueLength * 2.5, cueLength * 2.5 + tableHeight - cushionThickness, cueLength * 2.5 + tableWidth, cueLength * 2.5 + tableHeight, { isStatic: true });
-    // Left and right cushions
-    let leftCushion = Matter.Bodies.rectangle(canvasWidth / 2 - tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight, { isStatic: true });
-    let rightCushion = Matter.Bodies.rectangle(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight, { isStatic: true });
-
-    Matter.World.add(world, [topCushion, bottomCushion, leftCushion, rightCushion]);
-     */
     let cushionThickness = 4 * scale;
     // Create cushion objects and add to the cushions array
     cushions.push(new Cushion(canvasWidth / 2, canvasHeight / 2 - tableHeight / 2, tableWidth, cushionThickness)); // Top cushion
@@ -230,12 +209,12 @@ function createCushions() {
     cushions.push(new Cushion(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight)); // Right cushion
 }
 
-function updateCue() {
-    let cueEndX = cue.position.x + cue.length * cos(cue.angle);
-    let cueEndY = cue.position.y + cue.length * sin(cue.angle);
-    let mouseAngle = atan2(mouseY - cueEndY, mouseX - cueEndX);
-    cue.angle = mouseAngle;
-}
+// function updateCue() {
+//     let cueEndX = cue.position.x + cue.length * cos(cue.angle);
+//     let cueEndY = cue.position.y + cue.length * sin(cue.angle);
+//     let mouseAngle = atan2(mouseY - cueEndY, mouseX - cueEndX);
+//     cue.angle = mouseAngle;
+// }
 
 function applyForceToCueBall() {
     let forceMagnitude = 0.02 * cueLength; // Adjust force as needed
