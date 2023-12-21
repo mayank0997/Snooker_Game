@@ -1,12 +1,19 @@
+//matter.js 
+var Engine = Matter.Engine;
+//var Render = Matter.Render;
+var World = Matter.World;
+var Bodies = Matter.Bodies;
+var Body = Matter.Body;
+
 class Ball {
     constructor(x, y, diameter, color) {
         this.x = x;
         this.y = y;
         this.diameter = diameter;
         this.color = color;
-        this.body = Matter.Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
+        this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
         // Add body to Matter.World in sketch.js
-        Matter.World.add(world, this.body);
+        World.add(World, this.body);
     }
 
     draw() {
@@ -19,8 +26,8 @@ class Ball {
 class CueBall extends Ball {
     constructor(x, y, diameter) {
         super(x, y, diameter, 'white');
-        this.body = Matter.Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
-        Matter.World.add(world, this.body);
+        this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
+        World.add(World, this.body);
         //console.log("cue ball initialized");
     }
 
@@ -41,11 +48,11 @@ class Cue {
         this.initialPosition = createVector(x, y);
 
         // Create a rectangle body for the cue
-        this.body = Matter.Bodies.rectangle(x, y, length, 10, {
+        this.body = Bodies.rectangle(x, y, length, 10, {
             angle: this.angle,
             isStatic: true
         });
-        Matter.World.add(world, this.body);
+        World.add(World, this.body);
     }
 
     draw() {
@@ -59,18 +66,18 @@ class Cue {
     }
 
     setPosition(x, y) {
-        Matter.Body.setPosition(this.body, { x: x, y: y });
+        Body.setPosition(this.body, { x: x, y: y });
         this.initialPosition = createVector(x, y);
     }
 
     resetPosition() {
         // Reset the cue's position to its initial position
-        Matter.Body.setPosition(this.body, { x: this.initialPosition.x, y: this.initialPosition.y });
-        Matter.Body.setAngle(this.body, this.angle); // Reset angle if needed
+        Body.setPosition(this.body, { x: this.initialPosition.x, y: this.initialPosition.y });
+        Body.setAngle(this.body, this.angle); // Reset angle if needed
     }
 
     setAngle(angle) {
-        Matter.Body.setAngle(this.body, angle);
+        Body.setAngle(this.body, angle);
     }
 }
 
@@ -81,8 +88,8 @@ class Cushion {
         this.width = width;
         this.height = height;
         // Create a static Matter.js body for the cushion
-        this.body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: true });
-        Matter.World.add(world, this.body);
+        this.body = Bodies.rectangle(x, y, width, height, { isStatic: true });
+        World.add(World, this.body);
     }
 
     draw() {

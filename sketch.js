@@ -1,4 +1,14 @@
 //global variables 
+
+//matter.js 
+var Engine = Matter.Engine;
+//var Render = Matter.Render;
+var World = Matter.World;
+var Bodies = Matter.Bodies;
+var Body = Matter.Body;
+
+var engine = Engine.create();
+
 var tableWidth, tableHeight;
 var ballDiameter, pocketSize;
 var cushions = [];
@@ -11,8 +21,6 @@ var cueLength;
 
 var isDraggingCueBall = false;
 var isDraggingCue = false;
-//matter.js 
-var engine, world;
 
 /**
  * I used the scale factor to make sure the snooker table and its elements (balls, pockets, cue) are proportionally scaled to fit within the current window size while maintaining their aspect ratios.
@@ -33,8 +41,8 @@ var isCueHitting = false; // Flag to check if cue is hitting
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
-    engine = Matter.Engine.create();
-    world = engine.world;
+    //engine = Matter.Engine.create();
+    //world = engine.world;
     drawTable();
     initializeBalls();
 
@@ -66,10 +74,11 @@ function draw() {
             let forceDirection = p5.Vector.fromAngle(cue.angle);
             let forceMagnitude = 10; // Adjust as needed
             let force = forceDirection.mult(forceMagnitude);
-            Matter.Body.applyForce(cue.body, cue.body.position, force);
+            Body.applyForce(cue.body, cue.body.position, force);
+            animateCueHit();
 
             // Reset cue position after hitting
-            cue.resetPosition();
+            //cue.resetPosition();
             isCueHitting = false;
         }
     }
@@ -95,7 +104,7 @@ function windowResized() {
     // Calculate the new position
     let newCueBallX = canvasWidth / 2 + relativeX * tableWidth;
     let newCueBallY = canvasHeight / 2 + relativeY * tableHeight;
-    Matter.Body.setPosition(cueBall.body, { x: newCueBallX, y: newCueBallY });
+    Body.setPosition(cueBall.body, { x: newCueBallX, y: newCueBallY });
 
     cue = new Cue(20, canvasHeight / 2, cueLength, 0);
 }
@@ -253,11 +262,30 @@ function hitCueBall() {
     cueHitDistance = cueBackDistance;
 }
 
+function animateCueHit() {
+    if (cueHitDistance > 0) {
+        // Move the cue backward
+        cue.setPosition(cue.x, cue.y - cueHitSpeed);
+        cueHitDistance -= cueHitSpeed;
+    } else {
+        // Move cue forward and apply force
+        let forceDirection = p5.Vector.fromAngle(cue.angle);
+        let forceMagnitude = 10; // Adjust as needed
+        let force = forceDirection.mult(forceMagnitude);
+        Matter.Body.applyForce(cue.body, cue.body.position, force);
+
+        // Reset the cue position after hitting
+        cue.resetPosition();
+        isCueHitting = false;
+    }
+}
+
+
 function applyForceToCueBall() {
     let forceMagnitude = 0.02 * cueLength; // Adjust force as needed
     let forceDirection = p5.Vector.fromAngle(cue.angle);
     let force = forceDirection.mult(forceMagnitude);
-    Matter.Body.applyForce(cueBall.body, cueBall.body.position, force);
+    Body.applyForce(cueBall.body, cueBall.body.position, force);
 }
 
 
