@@ -24,6 +24,12 @@ var canvasWidth, canvasHeight;
 
 let baulkLineX;
 
+// Global variables for cue movement simulation
+var cueBackDistance = 20; // Distance to move cue back
+var cueHitDistance = 0; // Distance cue moves forward when hitting
+var cueHitSpeed = 10; // Speed of the cue hit
+var isCueHitting = false; // Flag to check if cue is hitting
+
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
@@ -49,6 +55,24 @@ function draw() {
     //updateCue();
     cueBall.draw();
     cue.draw();
+    if (isCueHitting) {
+        // Animate cue movement
+        if (cueHitDistance > 0) {
+            // Move cue backward
+            cue.setPosition(cue.x, cue.y - cueHitSpeed);
+            cueHitDistance -= cueHitSpeed;
+        } else {
+            // Move cue forward and apply force
+            let forceDirection = p5.Vector.fromAngle(cue.angle);
+            let forceMagnitude = 10; // Adjust as needed
+            let force = forceDirection.mult(forceMagnitude);
+            Matter.Body.applyForce(cue.body, cue.body.position, force);
+
+            // Reset cue position after hitting
+            cue.resetPosition();
+            isCueHitting = false;
+        }
+    }
     //applyForceToCueBall();
     handleCollisions();
     // Update physics engine
@@ -99,6 +123,15 @@ function resizeSketch() {
     canvasHeight = tableHeight + cueLength * 2.5; // 1.25 times cue length as buffer on top and bottom
 }
 
+function keyPressed() {
+    if (keyCode === 32) { // Space bar
+        //isCueHitting = true;
+        //cueHittingBackDistance = 20; // Set the distance for the cue to move back
+        hitCueBall();
+        //setTimeout(hitCueBall, 200); // Delay the hit action
+    }
+}
+
 function mousePressed() {
     // Check if the mouse is over the cue ball
     if (dist(mouseX, mouseY, cueBall.body.position.x, cueBall.body.position.y) < cueBall.diameter / 2) {
@@ -125,7 +158,6 @@ function mouseDragged() {
 function mouseReleased() {
     isDraggingCueBall = false;
     isDraggingCue = false;
-    // Implement cue logic to hit the ball
 }
 
 function drawTable() {
@@ -215,6 +247,11 @@ function createCushions() {
 //     let mouseAngle = atan2(mouseY - cueEndY, mouseX - cueEndX);
 //     cue.angle = mouseAngle;
 // }
+
+function hitCueBall() {
+    isCueHitting = true;
+    cueHitDistance = cueBackDistance;
+}
 
 function applyForceToCueBall() {
     let forceMagnitude = 0.02 * cueLength; // Adjust force as needed

@@ -38,6 +38,7 @@ class Cue {
         this.y = y;
         this.length = length;
         this.angle = angle;
+        this.initialPosition = createVector(x, y);
 
         // Create a rectangle body for the cue
         this.body = Matter.Bodies.rectangle(x, y, length, 10, {
@@ -59,6 +60,13 @@ class Cue {
 
     setPosition(x, y) {
         Matter.Body.setPosition(this.body, { x: x, y: y });
+        this.initialPosition = createVector(x, y);
+    }
+
+    resetPosition() {
+        // Reset the cue's position to its initial position
+        Matter.Body.setPosition(this.body, { x: this.initialPosition.x, y: this.initialPosition.y });
+        Matter.Body.setAngle(this.body, this.angle); // Reset angle if needed
     }
 
     setAngle(angle) {
