@@ -15,11 +15,6 @@ class Ball {
         // Add body to Matter.World in sketch.js
         World.add(world, this.body);
     }
-
-    draw() {
-        fill(this.color);
-        ellipse(this.body.position.x, this.body.position.y, this.diameter, this.diameter);
-    }
 }
 
 // CueBall class definition
@@ -30,13 +25,6 @@ class CueBall extends Ball {
         World.add(world, this.body);
         //console.log("cue ball initialized");
     }
-
-    draw() {
-        fill(this.color);
-        ellipse(this.body.position.x, this.body.position.y, this.diameter, this.diameter);
-        //console.log("cue ball drawn");
-    }
-
 }
 
 class Cue {
@@ -58,16 +46,6 @@ class Cue {
             }
         });
         World.add(world, this.body);
-    }
-
-    draw() {
-        push();
-        translate(this.body.position.x, this.body.position.y);
-        rotate(this.body.angle);
-        stroke(139, 69, 19);
-        fill(0);
-        rect(0, 0, this.length, 10); // Draw the cue as a rectangle
-        pop();
     }
 
     setPosition(x, y) {
@@ -95,11 +73,5 @@ class Cushion {
         // Create a static Matter.js body for the cushion
         this.body = Bodies.rectangle(x, y, width, height, { isStatic: true });
         World.add(world, this.body);
-    }
-
-    draw() {
-        fill(80); // Cushion color
-        noStroke();
-        rect(this.x, this.y, this.width, this.height);
     }
 }

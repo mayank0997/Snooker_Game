@@ -6,9 +6,11 @@ var Body = Matter.Body;
 
 var engine, world, render;
 
-var balls, cue, cushions, table, topEdge, bottomEdge, leftEdge, rightEdge;
+var balls, cue, cueBall, cushions, table, topEdge, bottomEdge, leftEdge, rightEdge;
 
 var scale, tableWidth, tableHeight, ballDiameter, pocketSize, cueLength, canvasWidth, canvasHeight;
+
+var mouse, mouseConstraint;
 
 function setup() {
     engine = Engine.create();
@@ -112,6 +114,7 @@ window.addEventListener('resize', function () {
     // [Your existing code for recalculating dimensions]
 
     //initializeBalls();
+    cueBall = null;
     balls = [];
     initializeBalls();
     cue = null;
@@ -200,6 +203,8 @@ function initializeBalls() {
     const startX = canvasWidth / 2 - tableWidth / 2 + cushionOffset + ballDiameter;
     const startY = canvasHeight / 2;
 
+    cueBall = new CueBall(startX, startY, ballDiameter);
+
     const positions = [
         { x: startX, y: startY, color: 'red' },
         { x: startX + ballDiameter * 1.5, y: startY, color: 'blue' },
@@ -243,4 +248,91 @@ function createCushions() {
     cushions.push(new Cushion(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, cushionWidth, tableHeight)); // Right cushion
 }
 
+/**
+ function mouseDragged() {
+    // Check if the mouse is near the cue stick
+    if (isMouseNearCue(mouseX, mouseY)) {
+        // Set the cue stick's position to the mouse's position
+        Body.setPosition(cue.body, { x: mouseX, y: mouseY });
+    }
+}
+ */
+
+function isMouseNearCue(mouseX, mouseY) {
+    // Calculate the distance between the mouse and the cue stick
+    var distance = Math.sqrt(Math.pow(mouseX - cue.body.position.x, 2) + Math.pow(mouseY - cue.body.position.y, 2));
+    // Define a threshold distance to determine 'nearness'
+    var threshold = 50; // Adjust this value as needed
+    return distance < threshold;
+}
+
+/**
+ function mouseReleased() {
+    if (isMouseNearCue(mouseX, mouseY)) {
+        // Calculate the direction and magnitude of the force
+        var forceMagnitude = 0.02; // Adjust based on your requirements
+        var forceDirection = { x: cueBall.body.position.x - cue.body.position.x, y: cueBall.body.position.y - cue.body.position.y };
+        // Normalize the direction
+        var force = Matter.Vector.normalise(forceDirection);
+        // Apply the force to the cue ball
+        Body.applyForce(cueBall.body, cueBall.body.position, { x: force.x * forceMagnitude, y: force.y * forceMagnitude });
+    }
+}
+ */
+
+function keyPressed() {
+    if (keyCode === 32) { // Space bar
+        // Calculate the direction of the force
+        let direction = {
+            x: cueBall.body.position.x - cue.body.position.x,
+            y: cueBall.body.position.y - cue.body.position.y
+        };
+
+        // Normalize the direction
+        let normalizedDirection = Matter.Vector.normalise(direction);
+
+        // Set the force magnitude
+        let forceMagnitude = 0.001; // Adjust this value based on your requirements
+
+        // Apply the force to the cue ball
+        Body.applyForce(cueBall.body, cueBall.body.position, {
+            x: normalizedDirection.x * forceMagnitude,
+            y: normalizedDirection.y * forceMagnitude
+        });
+    }
+}
+
+var cueStartX, cueStartY;
+var isDraggingCue = false;
+
+function mouseDragged() {
+    if (isMouseNearCue(mouseX, mouseY)) {
+        isDraggingCue = true;
+        // Save initial position for calculating force direction
+        cueStartX = cue.body.position.x;
+        cueStartY = cue.body.position.y;
+        // Drag the cue stick
+        Body.setPosition(cue.body, { x: mouseX, y: mouseY });
+    }
+}
+
+function mouseReleased() {
+    if (isDraggingCue) {
+        // Calculate force direction based on how far the cue stick is pulled
+        var dx = cueStartX - cue.body.position.x;
+        var dy = cueStartY - cue.body.position.y;
+        var forceMagnitude = 0.005 * Math.sqrt(dx * dx + dy * dy); // Adjust the multiplier as needed
+        var forceDirection = Matter.Vector.normalise({ x: dx, y: dy });
+
+        // Apply the force to the cue ball
+        Body.applyForce(cueBall.body, cueBall.body.position, {
+            x: forceDirection.x * forceMagnitude,
+            y: forceDirection.y * forceMagnitude
+        });
+
+        // Reset cue stick position
+        Body.setPosition(cue.body, { x: cueStartX, y: cueStartY });
+        isDraggingCue = false;
+    }
+}
 
