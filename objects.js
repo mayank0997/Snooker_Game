@@ -1,6 +1,6 @@
 //matter.js 
 var Engine = Matter.Engine;
-//var Render = Matter.Render;
+var Render = Matter.Render;
 var World = Matter.World;
 var Bodies = Matter.Bodies;
 var Body = Matter.Body;
@@ -13,7 +13,7 @@ class Ball {
         this.color = color;
         this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
         // Add body to Matter.World in sketch.js
-        World.add(World, this.body);
+        World.add(world, this.body);
     }
 
     draw() {
@@ -27,7 +27,7 @@ class CueBall extends Ball {
     constructor(x, y, diameter) {
         super(x, y, diameter, 'white');
         this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
-        World.add(World, this.body);
+        World.add(world, this.body);
         //console.log("cue ball initialized");
     }
 
@@ -52,7 +52,7 @@ class Cue {
             angle: this.angle,
             isStatic: true
         });
-        World.add(World, this.body);
+        World.add(world, this.body);
     }
 
     draw() {
@@ -89,7 +89,7 @@ class Cushion {
         this.height = height;
         // Create a static Matter.js body for the cushion
         this.body = Bodies.rectangle(x, y, width, height, { isStatic: true });
-        World.add(World, this.body);
+        World.add(world, this.body);
     }
 
     draw() {
