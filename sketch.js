@@ -6,11 +6,15 @@ var Body = Matter.Body;
 
 var engine, world, render;
 
-var balls, cue, cushions;
+var balls, cue, cushions, table, topEdge, bottomEdge, leftEdge, rightEdge;
+
+var scale, tableWidth, tableHeight, ballDiameter, pocketSize, cueLength, canvasWidth, canvasHeight;
 
 function setup() {
     engine = Engine.create();
     world = engine.world;
+
+    engine.world.gravity.y = 3;
 
     // Initialize scale and dimensions for the table, balls, etc.
     initializeDimensions(); // You need to define this function to set canvasWidth, canvasHeight, etc.
@@ -25,13 +29,15 @@ function setup() {
         }
     });
 
+    initializeDimensions();
+
     createTable();
+
+    // Create balls as dynamic bodies
+    initializeBalls();
 
     // Create snooker table edges as static bodies
     createTableEdges(); // Define this function to add table edges to the world
-
-    // Create balls as dynamic bodies
-    initializeBalls(); // Modify your existing function to use Matter.js bodies
 
     // Create cue as a dynamic body
     createCue(); // Modify your existing Cue class to use Matter.js body
@@ -45,25 +51,6 @@ function setup() {
     Render.run(render);
 }
 
-function createTable() {
-    var table = Bodies.rectangle(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight, {
-        isStatic: true,
-        render: {
-            fillStyle: '#006400' // Dark green color for the table
-        }
-    });
-    World.add(world, table);
-
-}
-
-function createTableEdges() {
-    let topEdge = Bodies.rectangle(canvasWidth / 2, canvasHeight / 2 - tableHeight / 2, tableWidth, 10, { isStatic: true });
-    let bottomEdge = Bodies.rectangle(canvasWidth / 2, canvasHeight / 2 + tableHeight / 2, tableWidth, 10, { isStatic: true });
-    let leftEdge = Bodies.rectangle(canvasWidth / 2 - tableWidth / 2, canvasHeight / 2, 10, tableHeight, { isStatic: true });
-    let rightEdge = Bodies.rectangle(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, 10, tableHeight, { isStatic: true });
-
-    World.add(world, [topEdge, bottomEdge, leftEdge, rightEdge]);
-}
 
 function initializeDimensions() {
     // Calculate the scale factor based on the browser window dimensions
@@ -87,29 +74,149 @@ function initializeDimensions() {
     canvasHeight = tableHeight + cueLength * 2.5; // Add buffer for cue movement
 }
 
+window.addEventListener('resize', function () {
+    // Recalculate scale and dimensions based on new window size
+    scale = Math.min(window.innerWidth / (144 + 58 * 2.5), window.innerHeight / (72 + 58 * 2.5));
+    tableWidth = 144 * scale;
+    tableHeight = 72 * scale;
+    ballDiameter = tableWidth / 36;
+    pocketSize = ballDiameter * 1.5;
+    cueLength = 58 * scale;
+    canvasWidth = tableWidth + cueLength * 2.5;
+    canvasHeight = tableHeight + cueLength * 2.5;
+
+    // Update render dimensions
+    render.canvas.width = canvasWidth;
+    render.canvas.height = canvasHeight;
+    render.bounds.max.x = canvasWidth;
+    render.bounds.max.y = canvasHeight;
+
+    // Reposition table edges, balls, and cushions
+    //var oldTableWidth = tableWidth;
+    //var oldTableHeight = tableHeight;
+    storePositions();
+
+    World.clear(world, false);
+    createTable();
+
+    // Create snooker table edges as static bodies
+    World.remove(world, [topEdge, bottomEdge, leftEdge, rightEdge]);
+    createTableEdges(); // Define this function to add table edges to the world
+
+    // Add cushions as static bodies
+    cushions = [];
+    createCushions();
+
+    // Recalculate scale and dimensions based on new window size
+    // [Your existing code for recalculating dimensions]
+
+    //initializeBalls();
+    balls = [];
+    initializeBalls();
+    cue = null;
+    createCue();
+    balls.forEach(ball => {
+        if (ball.storedX !== undefined && ball.storedY !== undefined) {
+            Body.setPosition(ball.body, {
+                x: ball.storedX * tableWidth + canvasWidth / 2,
+                y: ball.storedY * tableHeight + canvasHeight / 2
+            });
+        }
+    });
+
+    if (cue.storedX !== undefined && cue.storedY !== undefined) {
+        Body.setPosition(cue.body, {
+            x: cue.storedX * tableWidth + canvasWidth / 2,
+            y: cue.storedY * tableHeight + canvasHeight / 2
+        });
+    }
+
+    Engine.update(engine);
+});
+
+function storePositions() {
+    // Store positions of balls
+    balls.forEach(ball => {
+        if (ball && ball.body && ball.body.position) {
+            ball.storedX = (ball.body.position.x - canvasWidth / 2) / tableWidth;
+            ball.storedY = (ball.body.position.y - canvasHeight / 2) / tableHeight;
+        }
+    });
+
+    // Store position of the cue
+    if (cue && cue.body && cue.body.position) {
+        cue.storedX = (cue.body.position.x - canvasWidth / 2) / tableWidth;
+        cue.storedY = (cue.body.position.y - canvasHeight / 2) / tableHeight;
+    }
+}
+
+
+function createTable() {
+    var table = Bodies.rectangle(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight, {
+        isStatic: true,
+        isSensor: true,
+        render: {
+            fillStyle: '#006400', // Dark green color for the table
+            strokeStyle: 'black', // Optional border color
+            lineWidth: 1
+        }
+    });
+    World.add(world, table);
+}
+
+/**
+function createTable() {
+    // Set fill color for the table
+    fill('#006400'); // Dark green color for the table
+
+    // Draw the table
+    rectMode(CENTER);
+    rect(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight);
+
+    // You can add more details to the table like pockets, lines, etc. here
+} 
+
+ */
+
+
+function createTableEdges() {
+    topEdge = Bodies.rectangle(canvasWidth / 2, canvasHeight / 2 - tableHeight / 2, tableWidth, 10, { isStatic: true });
+    bottomEdge = Bodies.rectangle(canvasWidth / 2, canvasHeight / 2 + tableHeight / 2, tableWidth, 10, { isStatic: true });
+    leftEdge = Bodies.rectangle(canvasWidth / 2 - tableWidth / 2, canvasHeight / 2, 10, tableHeight, { isStatic: true });
+    rightEdge = Bodies.rectangle(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, 10, tableHeight, { isStatic: true });
+
+    World.add(world, [topEdge, bottomEdge, leftEdge, rightEdge]);
+}
+
 function initializeBalls() {
-    // Example ball properties, adjust as necessary
     const restitution = 0.9; // Bounciness
     const friction = 0.05;   // Sliding resistance
 
-    // Clear existing balls array if any
     balls = [];
 
-    // Create balls and add them to the world and balls array
-    // Example positions and colors, modify as needed for your game setup
-    const positions = [[100, 100, 'red'], [150, 100, 'blue'], [200, 100, 'yellow']];
+    // Calculate positions relative to the table and cushion dimensions
+    const cushionOffset = 5 * scale; // Adjust as needed
+    const startX = canvasWidth / 2 - tableWidth / 2 + cushionOffset + ballDiameter;
+    const startY = canvasHeight / 2;
+
+    const positions = [
+        { x: startX, y: startY, color: 'red' },
+        { x: startX + ballDiameter * 1.5, y: startY, color: 'blue' },
+        { x: startX + ballDiameter * 3, y: startY, color: 'yellow' }
+        // Add more balls as needed
+    ];
+
     positions.forEach(pos => {
-        let ball = Bodies.circle(pos[0], pos[1], ballDiameter / 2, {
+        let ball = Bodies.circle(pos.x, pos.y, ballDiameter / 2, {
             restitution: restitution,
             friction: friction,
-            render: {
-                fillStyle: pos[2]
-            }
+            render: { fillStyle: pos.color }
         });
         World.add(world, ball);
         balls.push(ball);
     });
 }
+
 
 function createCue() {
     // Parameters: x position, y position, length, and angle of the cue
