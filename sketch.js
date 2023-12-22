@@ -13,8 +13,9 @@ var scale, tableWidth, tableHeight, ballDiameter, pocketSize, cueLength, canvasW
 function setup() {
     engine = Engine.create();
     world = engine.world;
+    world.gravity.y = 0;
+    world.gravity.x = 0;
 
-    engine.world.gravity.y = 3;
 
     // Initialize scale and dimensions for the table, balls, etc.
     initializeDimensions(); // You need to define this function to set canvasWidth, canvasHeight, etc.

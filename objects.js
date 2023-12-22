@@ -50,7 +50,12 @@ class Cue {
         // Create a rectangle body for the cue
         this.body = Bodies.rectangle(x, y, length, 10, {
             angle: this.angle,
-            isStatic: true
+            isStatic: true,
+            render: {
+                fillStyle: 'brown', // Dark green color for the table
+                strokeStyle: 'black', // Optional border color
+                lineWidth: 1
+            }
         });
         World.add(world, this.body);
     }
