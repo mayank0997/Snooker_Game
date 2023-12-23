@@ -11,7 +11,12 @@ class Ball {
         this.y = y;
         this.diameter = diameter;
         this.color = color;
-        this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
+        this.body = Bodies.circle(x, y, diameter / 2, {
+            restitution: 0.9,
+            render: {
+                fillStyle: color
+            }
+        });
         // Add body to Matter.World in sketch.js
         World.add(world, this.body);
     }
@@ -21,9 +26,6 @@ class Ball {
 class CueBall extends Ball {
     constructor(x, y, diameter) {
         super(x, y, diameter, 'white');
-        this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
-        World.add(world, this.body);
-        //console.log("cue ball initialized");
     }
 }
 
