@@ -12,15 +12,18 @@ var scale, tableWidth, tableHeight, ballDiameter, pocketSize, cueLength, canvasW
 
 var mouse, mouseConstraint;
 
+//old center of table
+var oldCenter;
+
+//old canvas dimensions
+var oldWindowWidth = canvasWidth;
+var oldWindowHeight = canvasHeight;
+
 function setup() {
     engine = Engine.create();
     world = engine.world;
     world.gravity.y = 0;
     world.gravity.x = 0;
-
-
-    // Initialize scale and dimensions for the table, balls, etc.
-    initializeDimensions(); // You need to define this function to set canvasWidth, canvasHeight, etc.
 
     render = Render.create({
         element: document.body,
@@ -57,7 +60,7 @@ function setup() {
 
 function initializeDimensions() {
     // Calculate the scale factor based on the browser window dimensions
-    scale = Math.min(windowWidth / (144 + 58 * 2.5), windowHeight / (72 + 58 * 2.5));
+    scale = Math.min(window.innerWidth / (144 + 58 * 2.5), window.innerHeight / (72 + 58 * 2.5));
 
     // Calculate the dimensions of the table
     tableWidth = 144 * scale; // Full-size table width scaled down
@@ -75,89 +78,36 @@ function initializeDimensions() {
     // Set the canvas dimensions
     canvasWidth = tableWidth + cueLength * 2.5; // Add buffer for cue movement
     canvasHeight = tableHeight + cueLength * 2.5; // Add buffer for cue movement
-}
 
-window.addEventListener('resize', function () {
-    // Recalculate scale and dimensions based on new window size
-    scale = Math.min(window.innerWidth / (144 + 58 * 2.5), window.innerHeight / (72 + 58 * 2.5));
-    tableWidth = 144 * scale;
-    tableHeight = 72 * scale;
-    ballDiameter = tableWidth / 36;
-    pocketSize = ballDiameter * 1.5;
-    cueLength = 58 * scale;
-    canvasWidth = tableWidth + cueLength * 2.5;
-    canvasHeight = tableHeight + cueLength * 2.5;
-
-    // Update render dimensions
     render.canvas.width = canvasWidth;
     render.canvas.height = canvasHeight;
     render.bounds.max.x = canvasWidth;
     render.bounds.max.y = canvasHeight;
-
-    // Reposition table edges, balls, and cushions
-    //var oldTableWidth = tableWidth;
-    //var oldTableHeight = tableHeight;
-    storePositions();
-
-    World.clear(world, false);
-    World.remove(world, table);
-    createTable();
-
-    // Create snooker table edges as static bodies
-    World.remove(world, [topEdge, bottomEdge, leftEdge, rightEdge]);
-    createTableEdges(); // Define this function to add table edges to the world
-
-    // Add cushions as static bodies
-    World.remove(world, cushions);
-    //cushions = [];
-    createCushions();
-
-    // Recalculate scale and dimensions based on new window size
-    // [Your existing code for recalculating dimensions]
-
-    //initializeBalls();
-    //cueBall = null;
-    //balls = [];
-    World.remove(world, balls);
-    initializeBalls();
-    //cue = null;
-    World.remove(world, cue);
-    createCue();
-    balls.forEach(ball => {
-        if (ball.storedX !== undefined && ball.storedY !== undefined) {
-            Body.setPosition(ball.body, {
-                x: ball.storedX * tableWidth + canvasWidth / 2,
-                y: ball.storedY * tableHeight + canvasHeight / 2
-            });
-        }
-    });
-
-    if (cue.storedX !== undefined && cue.storedY !== undefined) {
-        Body.setPosition(cue.body, {
-            x: cue.storedX * tableWidth + canvasWidth / 2,
-            y: cue.storedY * tableHeight + canvasHeight / 2
-        });
-    }
-
-    Engine.update(engine);
-});
-
-function storePositions() {
-    // Store positions of balls
-    balls.forEach(ball => {
-        if (ball && ball.body && ball.body.position) {
-            ball.storedX = (ball.body.position.x - canvasWidth / 2) / tableWidth;
-            ball.storedY = (ball.body.position.y - canvasHeight / 2) / tableHeight;
-        }
-    });
-
-    // Store position of the cue
-    if (cue && cue.body && cue.body.position) {
-        cue.storedX = (cue.body.position.x - canvasWidth / 2) / tableWidth;
-        cue.storedY = (cue.body.position.y - canvasHeight / 2) / tableHeight;
-    }
 }
 
+//ensures responsiveness
+window.addEventListener('resize', function () {
+    // Store old dimensions for scaling calculation
+    var oldWindowWidth = canvasWidth;
+    var oldWindowHeight = canvasHeight;
+
+    //re-initialize dimensions
+    initializeDimensions();
+
+    // Calculate scale factors
+    var newScaleX = canvasWidth / oldWindowWidth;
+    var newScaleY = canvasHeight / oldWindowHeight;
+
+    // Scale and translate the world
+    Matter.Composite.scale(world, newScaleX, newScaleY, { x: canvasWidth / 2, y: canvasHeight / 2 });
+    var offsetX = canvasWidth / 2 - oldCenter.x;
+    var offsetY = canvasHeight / 2 - oldCenter.y;
+    // Additional translation if needed
+    var translation = { x: offsetX, y: offsetY };
+    Matter.Composite.translate(world, translation);
+    oldCenter = { x: table.position.x, y: table.position.y };
+    Engine.update(engine);
+});
 
 function createTable() {
     table = Bodies.rectangle(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight, {
@@ -169,6 +119,7 @@ function createTable() {
             lineWidth: 1
         }
     });
+    oldCenter = { x: table.position.x, y: table.position.y };
     World.add(world, table);
 }
 

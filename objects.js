@@ -1,10 +1,3 @@
-//matter.js 
-var Engine = Matter.Engine;
-var Render = Matter.Render;
-var World = Matter.World;
-var Bodies = Matter.Bodies;
-var Body = Matter.Body;
-
 class Ball {
     constructor(x, y, diameter, color) {
         this.x = x;
@@ -42,8 +35,7 @@ class Cue {
             angle: this.angle,
             isStatic: true,
             render: {
-                fillStyle: 'brown', // Dark green color for the table
-                strokeStyle: 'black', // Optional border color
+                fillStyle: 'sienna',
                 lineWidth: 1
             }
         });
@@ -73,7 +65,14 @@ class Cushion {
         this.width = width;
         this.height = height;
         // Create a static Matter.js body for the cushion
-        this.body = Bodies.rectangle(x, y, width, height, { isStatic: true });
+        this.body = Bodies.rectangle(x, y, width, height, {
+            isStatic: true,
+            render: {
+                fillStyle: 'brown',
+                strokeStyle: 'black', // Optional border color
+                lineWidth: 1
+            }
+        });
         World.add(world, this.body);
     }
 }
