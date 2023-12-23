@@ -15,10 +15,6 @@ var mouse, mouseConstraint;
 //old center of table
 var oldCenter;
 
-//old canvas dimensions
-var oldWindowWidth = canvasWidth;
-var oldWindowHeight = canvasHeight;
-
 function setup() {
     engine = Engine.create();
     world = engine.world;
