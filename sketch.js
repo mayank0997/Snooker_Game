@@ -1,19 +1,23 @@
 var Engine = Matter.Engine;
 var Render = Matter.Render;
-var World = Matter.World;
+var World = Matter.Composite;
 var Bodies = Matter.Bodies;
 var Body = Matter.Body;
+var Events = Matter.Events;
 
 var engine, world, render;
 
 var balls, cue, cueBall, cushions, table, topEdge, bottomEdge, leftEdge, rightEdge;
 
 var scale, tableWidth, tableHeight, ballDiameter, pocketSize, cueLength, canvasWidth, canvasHeight;
+var baulkLineX;
 
 var mouse, mouseConstraint;
 
 //old center of table
 var oldCenter;
+
+var pockets;
 
 function setup() {
     engine = Engine.create();
@@ -34,6 +38,10 @@ function setup() {
     initializeDimensions();
 
     createTable();
+
+    pockets = createPockets();
+
+    removeBallOnPocketCollision();
 
     // Create balls as dynamic bodies
     initializeBalls();
@@ -75,60 +83,78 @@ function initializeDimensions() {
     canvasWidth = tableWidth + cueLength * 2.5; // Add buffer for cue movement
     canvasHeight = tableHeight + cueLength * 2.5; // Add buffer for cue movement
 
+    baulkLineX = (canvasWidth / 2) - (tableWidth / 2) + (29 * scale);
+
     render.canvas.width = canvasWidth;
     render.canvas.height = canvasHeight;
     render.bounds.max.x = canvasWidth;
     render.bounds.max.y = canvasHeight;
+
+    oldCenter = { x: canvasWidth / 2, y: canvasHeight / 2 };
 }
 
 //ensures responsiveness
 window.addEventListener('resize', function () {
     // Store old dimensions for scaling calculation
-    var oldWindowWidth = canvasWidth;
-    var oldWindowHeight = canvasHeight;
+    var oldCanvasWidth = canvasWidth;
+    var oldCanvasHeight = canvasHeight;
 
-    //re-initialize dimensions
+    // Reinitialize dimensions
     initializeDimensions();
 
     // Calculate scale factors
-    var newScaleX = canvasWidth / oldWindowWidth;
-    var newScaleY = canvasHeight / oldWindowHeight;
+    var scaleX = canvasWidth / oldCanvasWidth;
+    var scaleY = canvasHeight / oldCanvasHeight;
 
-    // Scale and translate the world
-    Matter.Composite.scale(world, newScaleX, newScaleY, { x: canvasWidth / 2, y: canvasHeight / 2 });
-    var offsetX = canvasWidth / 2 - oldCenter.x;
-    var offsetY = canvasHeight / 2 - oldCenter.y;
-    // Additional translation if needed
-    var translation = { x: offsetX, y: offsetY };
-    Matter.Composite.translate(world, translation);
-    oldCenter = { x: table.position.x, y: table.position.y };
+    // Scale the entire world
+    Matter.Composite.scale(world, scaleX, scaleY, oldCenter);
+
+    // Calculate the translation offsets
+    var offsetX = (canvasWidth / 2) - oldCenter.x;
+    var offsetY = (canvasHeight / 2) - oldCenter.y;
+
+    // Translate the entire world
+    Matter.Composite.translate(world, { x: offsetX, y: offsetY });
+
+    // Update old center for next resize
+    oldCenter = { x: canvasWidth / 2, y: canvasHeight / 2 };
+
+    // Update render dimensions
+    render.canvas.width = canvasWidth;
+    render.canvas.height = canvasHeight;
+    render.bounds.max.x = canvasWidth;
+    render.bounds.max.y = canvasHeight;
+
     Engine.update(engine);
+
 });
 
+function updateElementsPosition(deltaX, deltaY) {
+    // Update the table position
+    Body.setPosition(table, { x: table.position.x + deltaX, y: table.position.y + deltaY });
 
-/**
-function createTable() {
-    // Set fill color for the table
-    fill('#006400'); // Dark green color for the table
+    // Update positions of balls
+    balls.forEach(ball => {
+        Body.setPosition(ball.body, {
+            x: ball.body.position.x + deltaX,
+            y: ball.body.position.y + deltaY
+        });
+    });
 
-    // Draw the table
-    rectMode(CENTER);
-    rect(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight);
+    // Update cue position
+    Body.setPosition(cue.body, {
+        x: cue.body.position.x + deltaX,
+        y: cue.body.position.y + deltaY
+    });
 
-    // You can add more details to the table like pockets, lines, etc. here
-} 
-
- */
-
-/**
- function mouseDragged() {
-    // Check if the mouse is near the cue stick
-    if (isMouseNearCue(mouseX, mouseY)) {
-        // Set the cue stick's position to the mouse's position
-        Body.setPosition(cue.body, { x: mouseX, y: mouseY });
-    }
+    // Update cushions position
+    cushions.forEach(cushion => {
+        // Recalculate cushion position based on new table dimensions and positions
+        let newX = cushion.x * scale + deltaX;
+        let newY = cushion.y * scale + deltaY;
+        Body.setPosition(cushion.body, { x: newX, y: newY });
+    });
 }
- */
 
 function isMouseNearCue(mouseX, mouseY) {
     // Calculate the distance between the mouse and the cue stick
