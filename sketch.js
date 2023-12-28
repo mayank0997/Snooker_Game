@@ -6,6 +6,7 @@ var Engine = Matter.Engine;
 var World = Matter.World;
 var Bodies = Matter.Bodies;
 var Body = Matter.Body;
+var Events = Matter.Events;
 
 var engine, world;
 
@@ -15,6 +16,7 @@ var cushions;
 
 var balls;
 var cueBall;
+var pockets;
 
 var cue;
 var cueLength;
@@ -55,6 +57,27 @@ function setup() {
     cue.draw();
     cushions = [];
     createCushions();
+    pockets = [];
+    createPockets();
+    Events.on(engine, 'collisionStart', function (event) {
+        let pairs = event.pairs;
+
+        for (let i = 0; i < pairs.length; i++) {
+            let bodyA = pairs[i].bodyA;
+            let bodyB = pairs[i].bodyB;
+
+            // Check if either of the bodies is a pocket
+            if (bodyA.isSensor || bodyB.isSensor) {
+                // Determine which one is the ball and which one is the pocket
+                let ball = bodyA.isSensor ? bodyB : bodyA;
+
+                // Remove the ball
+                World.remove(world, ball);
+                balls = balls.filter(b => b.body !== ball);
+            }
+        }
+    });
+
 }
 
 function draw() {
@@ -70,6 +93,10 @@ function draw() {
 
     if (isCueHitting) {
         animateCueHit(); // Call animateCueHit function to handle cue movement
+    }
+
+    for (let pocket of pockets) {
+        pocket.draw();
     }
 
     handleCollisions(); // Handle collisions between balls
@@ -163,22 +190,6 @@ function drawTable() {
     fill(0); // Black for the pockets
     ellipseMode(CENTER);
 
-    // Pocket positions (corners and midpoints of longer sides)
-    var pocketPositions = [
-        { x: canvasWidth / 2 - tableWidth / 2, y: canvasHeight / 2 - tableHeight / 2 },
-        { x: canvasWidth / 2 + tableWidth / 2, y: canvasHeight / 2 - tableHeight / 2 },
-        { x: canvasWidth / 2 - tableWidth / 2, y: canvasHeight / 2 + tableHeight / 2 },
-        { x: canvasWidth / 2 + tableWidth / 2, y: canvasHeight / 2 + tableHeight / 2 },
-        { x: canvasWidth / 2, y: canvasHeight / 2 - tableHeight / 2 },
-        { x: canvasWidth / 2, y: canvasHeight / 2 + tableHeight / 2 }
-    ];
-
-    // Draw each pocket
-    for (var i = 0; i < pocketPositions.length; i++) {
-        var pos = pocketPositions[i];
-        ellipse(pos.x, pos.y, pocketSize, pocketSize);
-    }
-
     // Calculate the x-coordinate of the baulk line
     baulkLineX = (canvasWidth / 2) - (tableWidth / 2) + (29 * scale);
 
@@ -193,6 +204,22 @@ function drawTable() {
     arc(baulkLineX, canvasHeight / 2, dRad * 2, dRad * 2, HALF_PI, -HALF_PI);
 
     noStroke(); // Reset stroke settings
+}
+
+function createPockets() {
+    // Pocket positions (corners and midpoints of longer sides)
+    var pocketPositions = [
+        { x: canvasWidth / 2 - tableWidth / 2, y: canvasHeight / 2 - tableHeight / 2 },
+        { x: canvasWidth / 2 + tableWidth / 2, y: canvasHeight / 2 - tableHeight / 2 },
+        { x: canvasWidth / 2 - tableWidth / 2, y: canvasHeight / 2 + tableHeight / 2 },
+        { x: canvasWidth / 2 + tableWidth / 2, y: canvasHeight / 2 + tableHeight / 2 },
+        { x: canvasWidth / 2, y: canvasHeight / 2 - tableHeight / 2 },
+        { x: canvasWidth / 2, y: canvasHeight / 2 + tableHeight / 2 }
+    ];
+
+    for (let pos of pocketPositions) {
+        pockets.push(new Pocket(pos.x, pos.y, pocketSize));
+    }
 }
 
 function initializeBalls() {

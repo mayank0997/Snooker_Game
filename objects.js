@@ -9,6 +9,17 @@ class Ball {
         World.add(world, this.body);
     }
 
+    isInPocket(pocketPositions) {
+        for (let i = 0; i < pocketPositions.length; i++) {
+            let pocket = pocketPositions[i];
+            let d = dist(this.body.position.x, this.body.position.y, pocket.x, pocket.y);
+            if (d < pocketSize / 2) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     draw() {
         fill(this.color);
         ellipse(this.body.position.x, this.body.position.y, this.diameter, this.diameter);
@@ -91,3 +102,19 @@ class Cushion {
         rect(this.x, this.y, this.width, this.height);
     }
 }
+
+class Pocket {
+    constructor(x, y, size) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.body = Bodies.circle(x, y, size / 2, { isSensor: true, isStatic: true });
+        World.add(world, this.body);
+    }
+
+    draw() {
+        fill(0); // Black for the pockets
+        ellipse(this.body.position.x, this.body.position.y, this.size, this.size);
+    }
+}
+
