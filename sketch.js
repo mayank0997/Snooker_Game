@@ -12,6 +12,8 @@ var balls, cue, cueBall, cushions, table, topEdge, bottomEdge, leftEdge, rightEd
 var scale, tableWidth, tableHeight, ballDiameter, pocketSize, cueLength, canvasWidth, canvasHeight;
 var baulkLineX;
 
+var cushionThickness;
+
 var mouse, mouseConstraint;
 
 //old center of table
@@ -47,7 +49,7 @@ function setup() {
     initializeBalls();
 
     // Create snooker table edges as static bodies
-    createTableEdges(); // Define this function to add table edges to the world
+    //createTableEdges(); // Define this function to add table edges to the world
 
     // Create cue as a dynamic body
     createCue(); // Modify your existing Cue class to use Matter.js body
