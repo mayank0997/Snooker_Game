@@ -66,6 +66,11 @@ function setup() {
             let bodyA = pairs[i].bodyA;
             let bodyB = pairs[i].bodyB;
 
+            // Check for cue ball-cushion collisions
+            if ((bodyA === cueBall.body || bodyB === cueBall.body) && (bodyA.label === 'Cushion' || bodyB.label === 'Cushion')) {
+                console.log("Cue ball collided with a cushion.");
+            }
+
             // Check if either of the bodies is a pocket
             if (bodyA.isSensor || bodyB.isSensor) {
                 // Determine which one is the ball and which one is the pocket
@@ -83,11 +88,16 @@ function setup() {
 function draw() {
     background(200); // Table background color
     drawTable();
-    balls.forEach(ball => ball.draw());
+    // Apply constraints to all balls
+    balls.forEach(ball => {
+        constrainBall(ball);
+        ball.draw();
+    });
 
-    createCushions();
+    //createCushions();
     cushions.forEach(cushion => cushion.draw());
 
+    constrainBall(cueBall);
     cueBall.draw();
     cue.draw();
 
@@ -99,8 +109,27 @@ function draw() {
         pocket.draw();
     }
 
-    handleCollisions(); // Handle collisions between balls
     Engine.update(engine); // Update physics engine
+}
+
+// Function to constrain a ball within table bounds and apply damping
+function constrainBall(ball) {
+    // Define table boundaries
+    let minX = canvasWidth / 2 - tableWidth / 2 + ball.diameter / 2;
+    let maxX = canvasWidth / 2 + tableWidth / 2 - ball.diameter / 2;
+    let minY = canvasHeight / 2 - tableHeight / 2 + ball.diameter / 2;
+    let maxY = canvasHeight / 2 + tableHeight / 2 - ball.diameter / 2;
+
+    // Constrain position
+    let posX = constrain(ball.body.position.x, minX, maxX);
+    let posY = constrain(ball.body.position.y, minY, maxY);
+    Body.setPosition(ball.body, { x: posX, y: posY });
+
+    // Apply damping to velocity
+    let damping = 0.98; // Adjust this value as needed
+    let velX = ball.body.velocity.x * damping;
+    let velY = ball.body.velocity.y * damping;
+    Body.setVelocity(ball.body, { x: velX, y: velY });
 }
 
 /*
@@ -179,16 +208,17 @@ function mouseReleased() {
 }
 
 function drawTable() {
-    // Set the fill color for the table
+    // Draw the main table area
     fill(0, 100, 0); // Dark green for the snooker table
-
-    // Draw the table as a rectangle with rounded corners
     rectMode(CENTER);
-    rect(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight, 20); // 20 is the radius for rounded corners
+    rect(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight, 20); // 20 for rounded corners
 
-    // Draw the pockets
-    fill(0); // Black for the pockets
-    ellipseMode(CENTER);
+    // Draw table edges
+    let edgeWidth = 10 * scale; // Adjust edge width as needed
+    noFill();
+    stroke('brown'); // Color of the table edge
+    strokeWeight(edgeWidth);
+    rect(canvasWidth / 2, canvasHeight / 2, tableWidth + edgeWidth, tableHeight + edgeWidth, 20);
 
     // Calculate the x-coordinate of the baulk line
     baulkLineX = (canvasWidth / 2) - (tableWidth / 2) + (29 * scale);
@@ -251,14 +281,10 @@ function initializeBalls() {
 }
 
 function createCushions() {
-    cushionThickness = 4 * scale;
-    let horizontalCushionLength = (tableWidth - 3 * pocketSize) / 2; // Horizontal cushion length excluding pockets
+    cushionThickness = 1.5 * scale;
+    let horizontalCushionLength = (tableWidth - 2 * pocketSize) / 2; // Horizontal cushion length excluding pockets
 
     var pocketOffset = pocketSize / 1.5;
-
-    // Clear existing cushions
-    cushions.forEach(cushion => World.remove(world, cushion.body));
-    cushions = [];
 
     // Top and Bottom Cushions (split into two segments each)
     cushions.push(new Cushion(canvasWidth / 2 - horizontalCushionLength / 2 - pocketOffset, canvasHeight / 2 - tableHeight / 2, horizontalCushionLength, cushionThickness));
@@ -272,17 +298,8 @@ function createCushions() {
     cushions.push(new Cushion(leftCushionX, canvasHeight / 2, cushionThickness, tableHeight));
     cushions.push(new Cushion(rightCushionX, canvasHeight / 2, cushionThickness, tableHeight));
 
-    // Add all cushions to the world
-    //cushions.forEach(cushion => World.add(world, cushion.body));
 }
 
-
-// function updateCue() {
-//     let cueEndX = cue.position.x + cue.length * cos(cue.angle);
-//     let cueEndY = cue.position.y + cue.length * sin(cue.angle);
-//     let mouseAngle = atan2(mouseY - cueEndY, mouseX - cueEndX);
-//     cue.angle = mouseAngle;
-// }
 
 function keyPressed() {
     if (keyCode === 32) { // Space bar
@@ -295,12 +312,19 @@ function hitCueBall() {
     let cuePos = cue.body.position;
     let distance = dist(cueBallPos.x, cueBallPos.y, cuePos.x, cuePos.y);
 
-    if (distance < 50 * scale) { // Adjust this distance as needed
+    // Get the current velocity of the cue ball
+    let cueBallVelocity = Matter.Vector.magnitude(cueBall.body.velocity);
+
+    // Define a maximum allowed velocity
+    let maxVelocity = 1; // Adjust this value as needed
+
+    if (distance < 50 * scale && cueBallVelocity < maxVelocity) {
         isCueHitting = true;
         cueHitDistance = cueBackDistance;
+    } else if (cueBallVelocity >= maxVelocity) {
+        console.log("Cue ball velocity too high, not applying additional force.");
     }
 }
-
 
 function animateCueHit() {
     if (cueHitDistance > 0) {
@@ -310,7 +334,7 @@ function animateCueHit() {
     } else {
         // Move cue forward and apply force to the cue ball
         let forceDirection = p5.Vector.fromAngle(cue.angle);
-        let forceMagnitude = 0.02; // Adjust as needed
+        let forceMagnitude = 0.01; // Adjust as needed
         let force = forceDirection.mult(forceMagnitude);
         Body.applyForce(cueBall.body, cueBall.body.position, force);
 
@@ -320,16 +344,3 @@ function animateCueHit() {
     }
 }
 
-
-
-function applyForceToCueBall() {
-    let forceMagnitude = 0.02 * cueLength; // Adjust force as needed
-    let forceDirection = p5.Vector.fromAngle(cue.angle);
-    let force = forceDirection.mult(forceMagnitude);
-    Body.applyForce(cueBall.body, cueBall.body.position, force);
-}
-
-
-function handleCollisions() {
-    // Handle collisions and update game state
-}

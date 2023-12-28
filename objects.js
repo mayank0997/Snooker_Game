@@ -91,13 +91,18 @@ class Cushion {
         this.y = y;
         this.width = width;
         this.height = height;
+
         // Create a static Matter.js body for the cushion
-        this.body = Bodies.rectangle(x, y, width, height, { isStatic: true });
+        this.body = Bodies.rectangle(x, y, width, height, {
+            isStatic: true,
+            restitution: 0.9,
+            label: 'Cushion' // Add a label to identify the cushion
+        });
         World.add(world, this.body);
     }
 
     draw() {
-        fill('brown'); // Cushion color
+        fill('rgba(0,255,0,0.25)'); // Cushion color
         noStroke();
         rect(this.x, this.y, this.width, this.height);
     }
