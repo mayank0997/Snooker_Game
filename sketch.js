@@ -7,13 +7,13 @@ var World = Matter.World;
 var Bodies = Matter.Bodies;
 var Body = Matter.Body;
 
-var engine = Engine.create();
+var engine, world;
 
 var tableWidth, tableHeight;
 var ballDiameter, pocketSize;
-var cushions = [];
+var cushions;
 
-var balls = [];
+var balls;
 var cueBall;
 
 var cue;
@@ -41,52 +41,42 @@ var isCueHitting = false; // Flag to check if cue is hitting
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
-    //engine = Matter.Engine.create();
-    //world = engine.world;
+    engine = Engine.create();
+    engine.gravity.x = 0;
+    engine.gravity.y = 0;
+    world = engine.world;
     drawTable();
+    balls = [];
     initializeBalls();
 
     cueBall = new CueBall(cueLength * 1.55, canvasHeight / 2, ballDiameter);
 
     cue = new Cue(20, canvasHeight / 2, cueLength, 0);
-    //cue.draw();
+    cue.draw();
+    cushions = [];
     createCushions();
 }
 
 function draw() {
     background(200); // Table background color
     drawTable();
-    cushions.forEach(cushion => cushion.draw());
     balls.forEach(ball => ball.draw());
 
     createCushions();
-    //updateCue();
+    cushions.forEach(cushion => cushion.draw());
+
     cueBall.draw();
     cue.draw();
-    if (isCueHitting) {
-        // Animate cue movement
-        if (cueHitDistance > 0) {
-            // Move cue backward
-            cue.setPosition(cue.x, cue.y - cueHitSpeed);
-            cueHitDistance -= cueHitSpeed;
-        } else {
-            // Move cue forward and apply force
-            let forceDirection = p5.Vector.fromAngle(cue.angle);
-            let forceMagnitude = 10; // Adjust as needed
-            let force = forceDirection.mult(forceMagnitude);
-            Body.applyForce(cue.body, cue.body.position, force);
-            animateCueHit();
 
-            // Reset cue position after hitting
-            //cue.resetPosition();
-            isCueHitting = false;
-        }
+    if (isCueHitting) {
+        animateCueHit(); // Call animateCueHit function to handle cue movement
     }
-    //applyForceToCueBall();
-    handleCollisions();
-    // Update physics engine
+
+    handleCollisions(); // Handle collisions between balls
+    Engine.update(engine); // Update physics engine
 }
 
+/*
 function windowResized() {
     // Store the old relative position
     let relativeX = (cueBall.body.position.x - canvasWidth / 2) / tableWidth;
@@ -108,7 +98,7 @@ function windowResized() {
 
     cue = new Cue(20, canvasHeight / 2, cueLength, 0);
 }
-
+*/
 
 function resizeSketch() {
     /**
@@ -132,15 +122,6 @@ function resizeSketch() {
     canvasHeight = tableHeight + cueLength * 2.5; // 1.25 times cue length as buffer on top and bottom
 }
 
-function keyPressed() {
-    if (keyCode === 32) { // Space bar
-        //isCueHitting = true;
-        //cueHittingBackDistance = 20; // Set the distance for the cue to move back
-        hitCueBall();
-        //setTimeout(hitCueBall, 200); // Delay the hit action
-    }
-}
-
 function mousePressed() {
     // Check if the mouse is over the cue ball
     if (dist(mouseX, mouseY, cueBall.body.position.x, cueBall.body.position.y) < cueBall.diameter / 2) {
@@ -151,6 +132,7 @@ function mousePressed() {
         isDraggingCue = true;
     }
 }
+
 
 function mouseDragged() {
     // Move the cue ball with the mouse
@@ -243,6 +225,9 @@ function initializeBalls() {
 
 function createCushions() {
     let cushionThickness = 4 * scale;
+    var horizontalCushionLength = (tableWidth - 3 * pocketSize) / 2;
+
+    var pocketOffset = pocketSize / 1.5;
     // Create cushion objects and add to the cushions array
     cushions.push(new Cushion(canvasWidth / 2, canvasHeight / 2 - tableHeight / 2, tableWidth, cushionThickness)); // Top cushion
     cushions.push(new Cushion(canvasWidth / 2, canvasHeight / 2 + tableHeight / 2, tableWidth, cushionThickness)); // Bottom cushion
@@ -257,10 +242,23 @@ function createCushions() {
 //     cue.angle = mouseAngle;
 // }
 
-function hitCueBall() {
-    isCueHitting = true;
-    cueHitDistance = cueBackDistance;
+function keyPressed() {
+    if (keyCode === 32) { // Space bar
+        hitCueBall();
+    }
 }
+
+function hitCueBall() {
+    let cueBallPos = cueBall.body.position;
+    let cuePos = cue.body.position;
+    let distance = dist(cueBallPos.x, cueBallPos.y, cuePos.x, cuePos.y);
+
+    if (distance < 50 * scale) { // Adjust this distance as needed
+        isCueHitting = true;
+        cueHitDistance = cueBackDistance;
+    }
+}
+
 
 function animateCueHit() {
     if (cueHitDistance > 0) {
@@ -268,17 +266,18 @@ function animateCueHit() {
         cue.setPosition(cue.x, cue.y - cueHitSpeed);
         cueHitDistance -= cueHitSpeed;
     } else {
-        // Move cue forward and apply force
+        // Move cue forward and apply force to the cue ball
         let forceDirection = p5.Vector.fromAngle(cue.angle);
-        let forceMagnitude = 10; // Adjust as needed
+        let forceMagnitude = 0.02; // Adjust as needed
         let force = forceDirection.mult(forceMagnitude);
-        Matter.Body.applyForce(cue.body, cue.body.position, force);
+        Body.applyForce(cueBall.body, cueBall.body.position, force);
 
         // Reset the cue position after hitting
         cue.resetPosition();
         isCueHitting = false;
     }
 }
+
 
 
 function applyForceToCueBall() {
