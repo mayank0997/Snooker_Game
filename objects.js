@@ -86,7 +86,7 @@ class Cushion {
     }
 
     draw() {
-        fill(80); // Cushion color
+        fill('brown'); // Cushion color
         noStroke();
         rect(this.x, this.y, this.width, this.height);
     }

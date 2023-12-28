@@ -224,16 +224,31 @@ function initializeBalls() {
 }
 
 function createCushions() {
-    let cushionThickness = 4 * scale;
-    var horizontalCushionLength = (tableWidth - 3 * pocketSize) / 2;
+    cushionThickness = 4 * scale;
+    let horizontalCushionLength = (tableWidth - 3 * pocketSize) / 2; // Horizontal cushion length excluding pockets
 
     var pocketOffset = pocketSize / 1.5;
-    // Create cushion objects and add to the cushions array
-    cushions.push(new Cushion(canvasWidth / 2, canvasHeight / 2 - tableHeight / 2, tableWidth, cushionThickness)); // Top cushion
-    cushions.push(new Cushion(canvasWidth / 2, canvasHeight / 2 + tableHeight / 2, tableWidth, cushionThickness)); // Bottom cushion
-    cushions.push(new Cushion(canvasWidth / 2 - tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight)); // Left cushion
-    cushions.push(new Cushion(canvasWidth / 2 + tableWidth / 2, canvasHeight / 2, cushionThickness, tableHeight)); // Right cushion
+
+    // Clear existing cushions
+    cushions.forEach(cushion => World.remove(world, cushion.body));
+    cushions = [];
+
+    // Top and Bottom Cushions (split into two segments each)
+    cushions.push(new Cushion(canvasWidth / 2 - horizontalCushionLength / 2 - pocketOffset, canvasHeight / 2 - tableHeight / 2, horizontalCushionLength, cushionThickness));
+    cushions.push(new Cushion(canvasWidth / 2 + horizontalCushionLength / 2 + pocketOffset, canvasHeight / 2 - tableHeight / 2, horizontalCushionLength, cushionThickness));
+    cushions.push(new Cushion(canvasWidth / 2 - horizontalCushionLength / 2 - pocketOffset, canvasHeight / 2 + tableHeight / 2, horizontalCushionLength, cushionThickness));
+    cushions.push(new Cushion(canvasWidth / 2 + horizontalCushionLength / 2 + pocketOffset, canvasHeight / 2 + tableHeight / 2, horizontalCushionLength, cushionThickness));
+
+    // Left and Right Cushions (continuous)
+    let leftCushionX = canvasWidth / 2 - tableWidth / 2;
+    let rightCushionX = canvasWidth / 2 + tableWidth / 2;
+    cushions.push(new Cushion(leftCushionX, canvasHeight / 2, cushionThickness, tableHeight));
+    cushions.push(new Cushion(rightCushionX, canvasHeight / 2, cushionThickness, tableHeight));
+
+    // Add all cushions to the world
+    //cushions.forEach(cushion => World.add(world, cushion.body));
 }
+
 
 // function updateCue() {
 //     let cueEndX = cue.position.x + cue.length * cos(cue.angle);
