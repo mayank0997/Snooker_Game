@@ -40,6 +40,9 @@ var cueHitDistance = 0; // Distance cue moves forward when hitting
 var cueHitSpeed = 10; // Speed of the cue hit
 var isCueHitting = false; // Flag to check if cue is hitting
 
+const ROTATION_STEP = 0.1; // The angle in radians for each step
+
+
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
@@ -51,7 +54,11 @@ function setup() {
     balls = [];
     initializeBalls();
 
-    cueBall = new CueBall(cueLength * 1.55, canvasHeight / 2, ballDiameter);
+    // Define starting position for the cue ball
+    let cueBallStartX = cueLength * 1.55;
+    let cueBallStartY = canvasHeight / 2;
+
+    cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
 
     cue = new Cue(20, canvasHeight / 2, cueLength, 0);
     cue.draw();
@@ -66,24 +73,26 @@ function setup() {
             let bodyA = pairs[i].bodyA;
             let bodyB = pairs[i].bodyB;
 
-            // Check for cue ball-cushion collisions
-            if ((bodyA === cueBall.body || bodyB === cueBall.body) && (bodyA.label === 'Cushion' || bodyB.label === 'Cushion')) {
-                console.log("Cue ball collided with a cushion.");
-            }
-
             // Check if either of the bodies is a pocket
             if (bodyA.isSensor || bodyB.isSensor) {
                 // Determine which one is the ball and which one is the pocket
                 let ball = bodyA.isSensor ? bodyB : bodyA;
 
-                // Remove the ball
-                World.remove(world, ball);
-                balls = balls.filter(b => b.body !== ball);
+                // Check if the cue ball falls into a pocket
+                if (ball === cueBall.body) {
+                    // Reset cue ball position
+                    Body.setPosition(cueBall.body, { x: cueBallStartX, y: cueBallStartY });
+                    Body.setVelocity(cueBall.body, { x: 0, y: 0 }); // Reset velocity
+                } else {
+                    // Remove other balls
+                    World.remove(world, ball);
+                    balls = balls.filter(b => b.body !== ball);
+                }
             }
         }
     });
-
 }
+
 
 function draw() {
     background(200); // Table background color
@@ -302,10 +311,15 @@ function createCushions() {
 
 
 function keyPressed() {
-    if (keyCode === 32) { // Space bar
+    if (keyCode === LEFT_ARROW) {
+        cue.setAngle(cue.angle - ROTATION_STEP);
+    } else if (keyCode === RIGHT_ARROW) {
+        cue.setAngle(cue.angle + ROTATION_STEP);
+    } else if (keyCode === 32) { // Space bar for hitting the ball
         hitCueBall();
     }
 }
+
 
 function hitCueBall() {
     let cueBallPos = cueBall.body.position;

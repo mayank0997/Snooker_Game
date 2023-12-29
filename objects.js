@@ -2,7 +2,11 @@ class Ball {
     constructor(x, y, diameter, color) {
         this.color = color;
         this.diameter = diameter;
-        this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
+        this.body = Bodies.circle(x, y, diameter / 2, {
+            restitution: 0.9,
+            friction: 0.05,
+            frictionAir: 0.01
+        });
         // Add body to Matter.World in sketch.js
         World.add(world, this.body);
     }
@@ -79,6 +83,7 @@ class Cue {
     }
 
     setAngle(angle) {
+        this.angle = angle;
         Body.setAngle(this.body, angle);
     }
 }
@@ -89,10 +94,11 @@ class Cushion {
         this.width = width;
         this.height = height;
         this.body = Bodies.rectangle(x, y, width, height, {
-            isStatic: true,
-            restitution: 0.9,
+            restitution: 0.8,
+            friction: 0.05,
             label: 'Cushion' // Add a label to identify the cushion
         });
+        Body.setStatic(this.body, true);
         World.add(world, this.body);
     }
 
