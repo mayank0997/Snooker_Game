@@ -91,6 +91,8 @@ function setup() {
             }
         }
     });
+
+
 }
 
 
@@ -117,17 +119,19 @@ function draw() {
     for (let pocket of pockets) {
         pocket.draw();
     }
-
     Engine.update(engine); // Update physics engine
 }
 
 // Function to constrain a ball within table bounds and apply damping
 function constrainBall(ball) {
-    // Define table boundaries
-    let minX = canvasWidth / 2 - tableWidth / 2 + ball.diameter / 2;
-    let maxX = canvasWidth / 2 + tableWidth / 2 - ball.diameter / 2;
-    let minY = canvasHeight / 2 - tableHeight / 2 + ball.diameter / 2;
-    let maxY = canvasHeight / 2 + tableHeight / 2 - ball.diameter / 2;
+    // Define the overlap distance outside the cushions
+    let cushionOverlap = 2 * scale;
+
+    // Adjusted table boundaries
+    let minX = canvasWidth / 2 - tableWidth / 2 + cushionOverlap;
+    let maxX = canvasWidth / 2 + tableWidth / 2 - cushionOverlap;
+    let minY = canvasHeight / 2 - tableHeight / 2 + cushionOverlap;
+    let maxY = canvasHeight / 2 + tableHeight / 2 - cushionOverlap;
 
     // Constrain position
     let posX = constrain(ball.body.position.x, minX, maxX);
@@ -290,7 +294,7 @@ function initializeBalls() {
 }
 
 function createCushions() {
-    cushionThickness = 1.5 * scale;
+    cushionThickness = 2.5 * scale;
     let horizontalCushionLength = (tableWidth - 2 * pocketSize) / 2; // Horizontal cushion length excluding pockets
 
     var pocketOffset = pocketSize / 1.5;
