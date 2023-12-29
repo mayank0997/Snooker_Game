@@ -1,9 +1,7 @@
 class Ball {
     constructor(x, y, diameter, color) {
-        this.x = x;
-        this.y = y;
-        this.diameter = diameter;
         this.color = color;
+        this.diameter = diameter;
         this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
         // Add body to Matter.World in sketch.js
         World.add(world, this.body);
@@ -77,7 +75,7 @@ class Cue {
     resetPosition() {
         // Reset the cue's position to its initial position
         Body.setPosition(this.body, { x: this.initialPosition.x, y: this.initialPosition.y });
-        Body.setAngle(this.body, this.angle); // Reset angle if needed
+        //Body.setAngle(this.body, this.angle); // Reset angle if needed
     }
 
     setAngle(angle) {
@@ -87,12 +85,9 @@ class Cue {
 
 class Cushion {
     constructor(x, y, width, height) {
-        this.x = x;
-        this.y = y;
+        // Create a static Matter.js body for the cushion
         this.width = width;
         this.height = height;
-
-        // Create a static Matter.js body for the cushion
         this.body = Bodies.rectangle(x, y, width, height, {
             isStatic: true,
             restitution: 0.9,
@@ -110,8 +105,6 @@ class Cushion {
 
 class Pocket {
     constructor(x, y, size) {
-        this.x = x;
-        this.y = y;
         this.size = size;
         this.body = Bodies.circle(x, y, size / 2, { isSensor: true, isStatic: true });
         World.add(world, this.body);
