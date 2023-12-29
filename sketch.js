@@ -348,7 +348,7 @@ function animateCueHit() {
     } else {
         // Move cue forward and apply force to the cue ball
         let forceDirection = p5.Vector.fromAngle(cue.angle);
-        let forceMagnitude = 0.01; // Adjust as needed
+        let forceMagnitude = 0.011; // Adjust as needed
         let force = forceDirection.mult(forceMagnitude);
         Body.applyForce(cueBall.body, cueBall.body.position, force);
 

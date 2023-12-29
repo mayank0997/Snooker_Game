@@ -94,7 +94,7 @@ class Cushion {
         this.width = width;
         this.height = height;
         this.body = Bodies.rectangle(x, y, width, height, {
-            restitution: 0.8,
+            restitution: 0.9,
             friction: 0.05,
             label: 'Cushion' // Add a label to identify the cushion
         });
