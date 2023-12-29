@@ -32,7 +32,6 @@ class Ball {
 class CueBall extends Ball {
     constructor(x, y, diameter) {
         super(x, y, diameter, 'white');
-        this.body = Bodies.circle(x, y, diameter / 2, { restitution: 0.9 });
         World.add(world, this.body);
         //console.log("cue ball initialized");
     }
