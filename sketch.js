@@ -224,7 +224,7 @@ function drawTable() {
     // Draw the main table area
     fill(0, 100, 0); // Dark green for the snooker table
     rectMode(CENTER);
-    rect(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight, 20); // 20 for rounded corners
+    rect(canvasWidth / 2, canvasHeight / 2, tableWidth, tableHeight); // 20 for rounded corners
 
     // Draw table edges
     let edgeWidth = 10 * scale; // Adjust edge width as needed
