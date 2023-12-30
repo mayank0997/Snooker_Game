@@ -3,8 +3,8 @@ class Ball {
         this.color = color;
         this.diameter = diameter;
         this.body = Bodies.circle(x, y, diameter / 2, {
-            restitution: 0.9,
-            friction: 0.05,
+            restitution: 1,
+            friction: 0.2,
             frictionAir: 0.01
         });
         // Add body to Matter.World in sketch.js
@@ -89,20 +89,19 @@ class Cue {
 
 class Cushion {
     constructor(x, y, width, height) {
-        // Create a static Matter.js body for the cushion
         this.width = width;
         this.height = height;
         this.body = Bodies.rectangle(x, y, width, height, {
-            label: 'Cushion' // Add a label to identify the cushion
+            isStatic: true,
+            label: 'Cushion'
         });
-        Body.setStatic(this.body, true);
         World.add(world, this.body);
     }
 
     draw() {
         fill('rgba(0,255,0,0.25)'); // Cushion color
         noStroke();
-        rect(this.x, this.y, this.width, this.height);
+        rect(this.body.position.x, this.body.position.y, this.width, this.height);
     }
 }
 

@@ -99,14 +99,14 @@ function setup() {
 function draw() {
     background(200); // Table background color
     drawTable();
+    //createCushions();
+    cushions.forEach(cushion => cushion.draw());
+
     // Apply constraints to all balls
     balls.forEach(ball => {
         constrainBall(ball);
         ball.draw();
     });
-
-    //createCushions();
-    cushions.forEach(cushion => cushion.draw());
 
     constrainBall(cueBall);
     cueBall.draw();
@@ -352,7 +352,7 @@ function animateCueHit() {
     } else {
         // Move cue forward and apply force to the cue ball
         let forceDirection = p5.Vector.fromAngle(cue.angle);
-        let forceMagnitude = 0.001; // Adjust as needed
+        let forceMagnitude = 0.002;
         let force = forceDirection.mult(forceMagnitude);
         Body.applyForce(cueBall.body, cueBall.body.position, force);
 
