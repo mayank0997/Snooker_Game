@@ -56,7 +56,7 @@ function setup() {
 
     cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
 
-    cue = new Cue(20, canvasHeight / 2, cueLength, 0);
+    cue = new Cue(20 * scale, canvasHeight / 2, cueLength, 0);
     cue.draw();
     cushions = [];
     createCushions();
@@ -153,46 +153,36 @@ function constrainBall(ball) {
 }
 
 function windowResized() {
-    // Store relative positions and states
+    // Store relative positions and states for balls and cue
     let storedBallStates = balls.map(ball => {
         return {
             relativeX: (ball.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth,
             relativeY: (ball.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight,
             color: ball.color // Assuming each ball has a color property
-            // Include any other properties that are relevant
         };
     });
 
-    let cueBallRelativeX = (cueBall.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth;
-    let cueBallRelativeY = (cueBall.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight;
+    let cueBallState = {
+        relativeX: (cueBall.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth,
+        relativeY: (cueBall.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight,
+        color: cueBall.color // Assuming the cue ball has a color property
+    };
 
-    // Remove existing balls, cushions, and pockets
-    balls.forEach(ball => World.remove(world, ball.body));
-    balls = []; // Clear the balls array
-    cushions.forEach(cushion => World.remove(world, cushion.body));
-    pockets.forEach(pocket => World.remove(world, pocket.body));
+    let cueState = {
+        relativeX: (cue.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth,
+        relativeY: (cue.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight,
+        angle: cue.angle
+    };
+
+    // Remove existing elements
+    removeAllGameElements();
 
     // Recalculate scale and dimensions
     resizeSketch();
     resizeCanvas(canvasWidth, canvasHeight);
 
-    // Reinitialize cushions and pockets
-    cushions = [];
-    createCushions();
-    pockets = [];
-    createPockets();
-
-    // Reinitialize balls with stored states
-    initializeBallsWithStoredStates(storedBallStates);
-
-    // Reset cueBall and cue to their relative positions
-    let newCueBallX = (canvasWidth / 2 - tableWidth / 2) + cueBallRelativeX * tableWidth;
-    let newCueBallY = (canvasHeight / 2 - tableHeight / 2) + cueBallRelativeY * tableHeight;
-    Body.setPosition(cueBall.body, { x: newCueBallX, y: newCueBallY });
-
-    // Update cue position if necessary
-    // Assuming cue also needs repositioning based on relative position
-    // cue.setPosition(newCuePositionX, newCuePositionY);
+    // Reinitialize game elements with stored states
+    reinitializeGameElements(storedBallStates, cueBallState, cueState);
 
     // Redraw the table and other static elements
     drawTable();
@@ -200,7 +190,28 @@ function windowResized() {
     Engine.update(engine);
 }
 
-function initializeBallsWithStoredStates(storedStates) {
+function removeAllGameElements() {
+    // Remove existing balls, cue ball, cushions, and pockets
+    balls.forEach(ball => World.remove(world, ball.body));
+    World.remove(world, cueBall.body); // Remove the cue ball
+    balls = []; // Clear the balls array
+    cushions.forEach(cushion => World.remove(world, cushion.body));
+    pockets.forEach(pocket => World.remove(world, pocket.body));
+    //World.remove(world, cue);
+}
+
+function reinitializeGameElements(storedBallStates, cueBallState, cueState) {
+    initializeBallsWithStoredStates(storedBallStates, cueBallState);
+    initializeCueBall(cueBallState);
+    initializeCue(cueState);
+    //World.add(world, cue);
+    cushions = [];
+    createCushions();
+    pockets = [];
+    createPockets();
+}
+
+function initializeBallsWithStoredStates(storedStates, cueBallState) {
     storedStates.forEach(state => {
         let newX = (canvasWidth / 2 - tableWidth / 2) + state.relativeX * tableWidth;
         let newY = (canvasHeight / 2 - tableHeight / 2) + state.relativeY * tableHeight;
@@ -212,8 +223,30 @@ function initializeBallsWithStoredStates(storedStates) {
         // Add the new ball to the Matter.js world
         World.add(world, newBall.body);
     });
+
+    // Recreate and reposition the cue ball
+    console.log("cue ball state: " + cueBallState);
+    let newCueBallX = (canvasWidth / 2 - tableWidth / 2) + cueBallState.relativeX * tableWidth;
+    let newCueBallY = (canvasHeight / 2 - tableHeight / 2) + cueBallState.relativeY * tableHeight;
+    cueBall = new Ball(newCueBallX, newCueBallY, ballDiameter, cueBallState.color); // Recreate cue ball
+    World.add(world, cueBall.body); // Add the cue ball to the world
 }
 
+
+function initializeCueBall(state) {
+    let newX = (canvasWidth / 2 - tableWidth / 2) + state.relativeX * tableWidth;
+    let newY = (canvasHeight / 2 - tableHeight / 2) + state.relativeY * tableHeight;
+    cueBall = new Ball(newX, newY, ballDiameter, state.color); // Recreate cue ball
+    World.add(world, cueBall.body); // Add the cue ball to the world
+}
+
+function initializeCue(state) {
+    let newX = (canvasWidth / 2 - tableWidth / 2) + state.relativeX * tableWidth;
+    let newY = (canvasHeight / 2 - tableHeight / 2) + state.relativeY * tableHeight;
+    // Adjust the length and angle of the cue based on the new scale
+    cueLength = 58 * scale; // Recalculate cue length based on the new scale
+    cue = new Cue(newX, newY, cueLength, state.angle); // Recreate cue with new length and position
+}
 
 
 /**
@@ -262,7 +295,11 @@ function mouseDragged() {
 
     // Move the cue with the mouse
     if (isDraggingCue) {
-        cue.setPosition(mouseX, mouseY);
+        // Constrain the new position within the canvas boundaries
+        let newX = constrain(mouseX, cue.length / 2, canvasWidth - cue.length / 2);
+        let newY = constrain(mouseY, cue.length / 2, canvasHeight - cue.length / 2);
+
+        cue.setPosition(newX, newY);
     }
 }
 
@@ -348,7 +385,7 @@ function createCushions() {
     cushionThickness = 2.5 * scale;
     let horizontalCushionLength = (tableWidth - 2 * pocketSize) / 2; // Horizontal cushion length excluding pockets
 
-    var pocketOffset = pocketSize / 1.5;
+    var pocketOffset = pocketSize / 2;
 
     // Top and Bottom Cushions (split into two segments each)
     cushions.push(new Cushion(canvasWidth / 2 - horizontalCushionLength / 2 - pocketOffset, canvasHeight / 2 - tableHeight / 2, horizontalCushionLength, cushionThickness));

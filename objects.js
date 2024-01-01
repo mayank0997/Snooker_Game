@@ -88,7 +88,7 @@ class Cue {
         rotate(this.body.angle);
         stroke(139, 69, 19);
         fill(0);
-        rect(0, 0, this.length, 10); // Draw the cue as a rectangle
+        rect(0, 0, this.length, 3.5 * scale); // Draw the cue as a rectangle
         pop();
     }
 
