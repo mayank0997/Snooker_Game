@@ -2,12 +2,31 @@ class Ball {
     constructor(x, y, diameter, color) {
         this.color = color;
         this.diameter = diameter;
+        this.relativeVelocity = { x: 0, y: 0 };
+        this.relativeAngle = 0;
         this.body = Bodies.circle(x, y, diameter / 2, {
             restitution: 1,
             friction: 0.2,
             frictionAir: 0.01
         });
         // Add body to Matter.World in sketch.js
+        World.add(world, this.body);
+        // Initialize relative positions
+        this.relativeX = 0;
+        this.relativeY = 0;
+    }
+
+    updateDynamics(newDiameter, newVelocity, newAngle) {
+        this.diameter = newDiameter;
+        let newPos = this.body.position;
+        World.remove(world, this.body);
+        this.body = Bodies.circle(newPos.x, newPos.y, newDiameter / 2, {
+            restitution: 0.9,
+            friction: 0.05,
+            frictionAir: 0.01
+        });
+        Body.setVelocity(this.body, newVelocity);
+        Body.setAngle(this.body, newAngle);
         World.add(world, this.body);
     }
 
@@ -58,6 +77,9 @@ class Cue {
             isStatic: true
         });
         World.add(world, this.body);
+        // Initialize relative positions
+        this.relativeX = 0;
+        this.relativeY = 0;
     }
 
     draw() {
@@ -69,6 +91,14 @@ class Cue {
         rect(0, 0, this.length, 10); // Draw the cue as a rectangle
         pop();
     }
+
+    updateWidth(newLength) {
+        this.length = newLength;
+        // Update cue body width
+        Body.setPosition(this.body, { x: this.body.position.x, y: this.body.position.y });
+        Body.setAngle(this.body, this.angle);
+    }
+
 
     setPosition(x, y) {
         Body.setPosition(this.body, { x: x, y: y });

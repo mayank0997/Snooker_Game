@@ -24,10 +24,6 @@ var cueLength;
 var isDraggingCueBall = false;
 var isDraggingCue = false;
 
-/**
- * I used the scale factor to make sure the snooker table and its elements (balls, pockets, cue) are proportionally scaled to fit within the current window size while maintaining their aspect ratios.
- * I learned about the scale factor on this website: https://www.thetechedvocate.org/how-to-calculate-a-scale-factor-a-step-by-step-guide/
- */
 var scale;
 
 var canvasWidth, canvasHeight;
@@ -91,8 +87,6 @@ function setup() {
             }
         }
     });
-
-
 }
 
 
@@ -119,6 +113,19 @@ function draw() {
     for (let pocket of pockets) {
         pocket.draw();
     }
+
+    balls.forEach(ball => {
+        ball.relativeX = (ball.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth;
+        ball.relativeY = (ball.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight;
+        ball.relativeVelocity = { x: ball.body.velocity.x / scale, y: ball.body.velocity.y / scale };
+        ball.relativeAngle = ball.body.angle;
+    });
+
+    // Update cue's relative position
+    cue.relativeX = (cue.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth;
+    cue.relativeY = (cue.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight;
+    cue.relativeWidth = cue.length / scale;
+
     Engine.update(engine); // Update physics engine
 }
 
@@ -145,30 +152,67 @@ function constrainBall(ball) {
     Body.setVelocity(ball.body, { x: velX, y: velY });
 }
 
-/*
 function windowResized() {
-    // Store the old relative position
-    let relativeX = (cueBall.body.position.x - canvasWidth / 2) / tableWidth;
-    let relativeY = (cueBall.body.position.y - canvasHeight / 2) / tableHeight;
+    cushions.forEach(cushion => World.remove(world, cushion.body));
+    pockets.forEach(pocket => World.remove(world, pocket.body));
 
+    var previousScale = scale;
+    // Recalculate scale and dimensions
     resizeSketch();
     resizeCanvas(canvasWidth, canvasHeight);
 
-    // Reinitialize cushions, balls, and cue
+    // Update balls' positions relative to the resized table
+    balls.forEach(ball => {
+        let newX = canvasWidth / 2 - tableWidth / 2 + ball.relativeX * tableWidth;
+        let newY = canvasHeight / 2 - tableHeight / 2 + ball.relativeY * tableHeight;
+        // Update each ball's diameter
+        //ball.updateDiameter(ballDiameter);
+        Body.setPosition(ball.body, { x: newX, y: newY });
+        let scaledVelocity = ball.relativeVelocity ?
+            { x: ball.relativeVelocity.x * scale, y: ball.relativeVelocity.y * scale } :
+            { x: 0, y: 0 };
+        let scaledAngle = ball.relativeAngle || 0;
+        ball.updateDynamics(ballDiameter, scaledVelocity, scaledAngle);
+    });
+
+    let newX = canvasWidth / 2 - tableWidth / 2 + cueBall.relativeX * tableWidth;
+    let newY = canvasHeight / 2 - tableHeight / 2 + cueBall.relativeY * tableHeight;
+    //cueBall.updateDiameter(ballDiameter);
+    Body.setPosition(cueBall.body, { x: newX, y: newY });
+
+    // Update cue's position and length
+    let newCueX = canvasWidth / 2 - tableWidth / 2 + cue.relativeX * tableWidth;
+    let newCueY = canvasHeight / 2 - tableHeight / 2 + cue.relativeY * tableHeight;
+    cue.setPosition(newCueX, newCueY);
+    cue.length = cueLength;
+
+    balls.forEach(ball => {
+        let scaledVelocity = { x: ball.relativeVelocity.x * scale, y: ball.relativeVelocity.y * scale };
+        let scaledAngle = ball.relativeAngle; // Adjust if necessary based on scale
+        ball.updateDynamics(ballDiameter, scaledVelocity, scaledAngle);
+    });
+
+    let scaledVelocity = { x: cueBall.relativeVelocity.x * scale, y: cueBall.relativeVelocity.y * scale };
+    let scaledAngle = cueBall.relativeAngle; // Adjust if necessary based on scale
+    cueBall.updateDynamics(ballDiameter, scaledVelocity, scaledAngle);
+
+    cue.updateWidth(cueLength);
+
+    // Reinitialize or update cushions and pockets
     cushions = [];
     createCushions();
-    balls = [];
-    initializeBalls();
+    pockets = [];
+    createPockets();
 
-    // Calculate the new position
-    let newCueBallX = canvasWidth / 2 + relativeX * tableWidth;
-    let newCueBallY = canvasHeight / 2 + relativeY * tableHeight;
-    Body.setPosition(cueBall.body, { x: newCueBallX, y: newCueBallY });
-
-    cue = new Cue(20, canvasHeight / 2, cueLength, 0);
+    // Redraw the table and other static elements
+    drawTable(); // May need adjustments for new dimensions
+    Engine.update(engine);
 }
-*/
 
+/**
+ * I used the scale factor to make sure the snooker table and its elements (balls, pockets, cue) are proportionally scaled to fit within the current window size while maintaining their aspect ratios.
+ * I learned about the scale factor on this website: https://www.thetechedvocate.org/how-to-calculate-a-scale-factor-a-step-by-step-guide/
+ */
 function resizeSketch() {
     /**
      * windowWidth / (144 + 58 * 2): This part calculates a scaling factor based on the width of the browser window (windowWidth). The denominator (144 + 58 * 2) represents the full length of the snooker table (144 inches/12 ft) plus two and a half times the length of the cue (58 inches) on either side. This calculation determines how much the full-size table and cue should be scaled down to fit the window width.
