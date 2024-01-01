@@ -153,61 +153,68 @@ function constrainBall(ball) {
 }
 
 function windowResized() {
+    // Store relative positions and states
+    let storedBallStates = balls.map(ball => {
+        return {
+            relativeX: (ball.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth,
+            relativeY: (ball.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight,
+            color: ball.color // Assuming each ball has a color property
+            // Include any other properties that are relevant
+        };
+    });
+
+    let cueBallRelativeX = (cueBall.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth;
+    let cueBallRelativeY = (cueBall.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight;
+
+    // Remove existing balls, cushions, and pockets
+    balls.forEach(ball => World.remove(world, ball.body));
+    balls = []; // Clear the balls array
     cushions.forEach(cushion => World.remove(world, cushion.body));
     pockets.forEach(pocket => World.remove(world, pocket.body));
 
-    var previousScale = scale;
     // Recalculate scale and dimensions
     resizeSketch();
     resizeCanvas(canvasWidth, canvasHeight);
 
-    // Update balls' positions relative to the resized table
-    balls.forEach(ball => {
-        let newX = canvasWidth / 2 - tableWidth / 2 + ball.relativeX * tableWidth;
-        let newY = canvasHeight / 2 - tableHeight / 2 + ball.relativeY * tableHeight;
-        // Update each ball's diameter
-        //ball.updateDiameter(ballDiameter);
-        Body.setPosition(ball.body, { x: newX, y: newY });
-        let scaledVelocity = ball.relativeVelocity ?
-            { x: ball.relativeVelocity.x * scale, y: ball.relativeVelocity.y * scale } :
-            { x: 0, y: 0 };
-        let scaledAngle = ball.relativeAngle || 0;
-        ball.updateDynamics(ballDiameter, scaledVelocity, scaledAngle);
-    });
-
-    let newX = canvasWidth / 2 - tableWidth / 2 + cueBall.relativeX * tableWidth;
-    let newY = canvasHeight / 2 - tableHeight / 2 + cueBall.relativeY * tableHeight;
-    //cueBall.updateDiameter(ballDiameter);
-    Body.setPosition(cueBall.body, { x: newX, y: newY });
-
-    // Update cue's position and length
-    let newCueX = canvasWidth / 2 - tableWidth / 2 + cue.relativeX * tableWidth;
-    let newCueY = canvasHeight / 2 - tableHeight / 2 + cue.relativeY * tableHeight;
-    cue.setPosition(newCueX, newCueY);
-    cue.length = cueLength;
-
-    balls.forEach(ball => {
-        let scaledVelocity = { x: ball.relativeVelocity.x * scale, y: ball.relativeVelocity.y * scale };
-        let scaledAngle = ball.relativeAngle; // Adjust if necessary based on scale
-        ball.updateDynamics(ballDiameter, scaledVelocity, scaledAngle);
-    });
-
-    let scaledVelocity = { x: cueBall.relativeVelocity.x * scale, y: cueBall.relativeVelocity.y * scale };
-    let scaledAngle = cueBall.relativeAngle; // Adjust if necessary based on scale
-    cueBall.updateDynamics(ballDiameter, scaledVelocity, scaledAngle);
-
-    cue.updateWidth(cueLength);
-
-    // Reinitialize or update cushions and pockets
+    // Reinitialize cushions and pockets
     cushions = [];
     createCushions();
     pockets = [];
     createPockets();
 
+    // Reinitialize balls with stored states
+    initializeBallsWithStoredStates(storedBallStates);
+
+    // Reset cueBall and cue to their relative positions
+    let newCueBallX = (canvasWidth / 2 - tableWidth / 2) + cueBallRelativeX * tableWidth;
+    let newCueBallY = (canvasHeight / 2 - tableHeight / 2) + cueBallRelativeY * tableHeight;
+    Body.setPosition(cueBall.body, { x: newCueBallX, y: newCueBallY });
+
+    // Update cue position if necessary
+    // Assuming cue also needs repositioning based on relative position
+    // cue.setPosition(newCuePositionX, newCuePositionY);
+
     // Redraw the table and other static elements
-    drawTable(); // May need adjustments for new dimensions
+    drawTable();
+
     Engine.update(engine);
 }
+
+function initializeBallsWithStoredStates(storedStates) {
+    storedStates.forEach(state => {
+        let newX = (canvasWidth / 2 - tableWidth / 2) + state.relativeX * tableWidth;
+        let newY = (canvasHeight / 2 - tableHeight / 2) + state.relativeY * tableHeight;
+
+        // Recreate each ball
+        let newBall = new Ball(newX, newY, ballDiameter, state.color);
+        balls.push(newBall);
+
+        // Add the new ball to the Matter.js world
+        World.add(world, newBall.body);
+    });
+}
+
+
 
 /**
  * I used the scale factor to make sure the snooker table and its elements (balls, pockets, cue) are proportionally scaled to fit within the current window size while maintaining their aspect ratios.
