@@ -87,8 +87,32 @@ function setup() {
             }
         }
     });
+
+
+    // Create reset button
+    resetButton = createButton('Reset Game');
+    resetButton.position(10, canvasHeight - 30); // Adjust the position as needed
+    resetButton.mousePressed(resetGame);
 }
 
+function resetGame() {
+    // Logic to reset the balls
+    // You might call initializeBalls or similar function here
+    balls.forEach(ball => World.remove(world, ball.body));
+    balls = [];
+    initializeBalls();
+
+    World.remove(world, cueBall);
+    // Define starting position for the cue ball
+    let cueBallStartX = cueLength * 1.55;
+    let cueBallStartY = canvasHeight / 2;
+
+    // Create a new cue ball
+    cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
+    World.add(world, cueBall.body); // Add the new cue ball to the world
+    // Reset score if needed
+    score = 0;
+}
 
 function draw() {
     background(200); // Table background color
@@ -193,6 +217,7 @@ function windowResized() {
 function removeAllGameElements() {
     // Remove existing balls, cue ball, cushions, and pockets
     balls.forEach(ball => World.remove(world, ball.body));
+
     World.remove(world, cueBall.body); // Remove the cue ball
     balls = []; // Clear the balls array
     cushions.forEach(cushion => World.remove(world, cushion.body));
@@ -231,7 +256,6 @@ function initializeBallsWithStoredStates(storedStates, cueBallState) {
     cueBall = new Ball(newCueBallX, newCueBallY, ballDiameter, cueBallState.color); // Recreate cue ball
     World.add(world, cueBall.body); // Add the cue ball to the world
 }
-
 
 function initializeCueBall(state) {
     let newX = (canvasWidth / 2 - tableWidth / 2) + state.relativeX * tableWidth;
