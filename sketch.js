@@ -30,6 +30,9 @@ var canvasWidth, canvasHeight;
 
 let baulkLineX;
 
+var cueInitialX;
+var cueInitialY;
+
 // Global variables for cue movement simulation
 var cueBackDistance = 20; // Distance to move cue back
 var cueHitDistance = 0; // Distance cue moves forward when hitting
@@ -60,6 +63,8 @@ function setup() {
 
     cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
 
+    cueInitialX = 20 * scale;
+    cueInitialY = canvasHeight / 2;
     cue = new Cue(20 * scale, canvasHeight / 2, cueLength, 0);
     cue.draw();
     cushions = [];
@@ -116,6 +121,7 @@ function resetGame() {
     World.add(world, cueBall.body); // Add the new cue ball to the world
     // Reset score if needed
     score = 0;
+    cue.setPosition(cueInitialX, cueInitialY);
 }
 
 function draw() {
@@ -472,7 +478,8 @@ function animateCueHit() {
             console.log("force being applied");
             Body.applyForce(cueBall.body, cueBall.body.position, force);
             isCueHitting = false;
-            cue.setPosition(cueOriginalPosition.x, cueOriginalPosition.y);
+            //cue.setPosition(cueOriginalPosition.x, cueOriginalPosition.y);
+            cue.setPosition(cueInitialX, cueInitialY);
         }
     } else if (!isCuePullingBack && cuePushForwardDistance <= 0 && isCueHitting) {
         isCueHitting = false;
