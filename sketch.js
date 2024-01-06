@@ -105,21 +105,7 @@ function setup() {
 }
 
 function resetGame() {
-    balls.forEach(ball => World.remove(world, ball.body));
-    balls = [];
-    initializeBalls();
-
-    World.remove(world, cueBall.body);
-    let cueBallStartX = cueLength * 1.55;
-    let cueBallStartY = canvasHeight / 2;
-    cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
-    World.add(world, cueBall.body);
-
-    World.remove(world, cue.body);
-    cue = new Cue(cueInitialX, cueInitialY, cueLength, 0);
-    World.add(world, cue.body);
-
-    score = 0;
+    setup();
 }
 
 
