@@ -118,10 +118,11 @@ function resetGame() {
 
     // Create a new cue ball
     cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
-    World.add(world, cueBall.body); // Add the new cue ball to the world
+    //World.add(world, cueBall.body); // Add the new cue ball to the world
     // Reset score if needed
     score = 0;
-    cue.setPosition(cueInitialX, cueInitialY);
+    World.remove(world, cue);
+    cue = new Cue(cueInitialX, cueInitialY, cueLength, 0);
 }
 
 function draw() {
@@ -283,7 +284,9 @@ function resizeSketch() {
      * windowHeight / (72 + 58 * 2): Similarly, this calculates a scaling factor based on the height of the browser window (windowHeight). Here, 72 inches (6 ft) is half the length of the snooker table, accounting for the 2:1 aspect ratio of a standard table, and again 58 inches is the cue length, considered on both top and bottom of the table.
      * I chose the smaller of these two scale factors because it ensures that the entire table and cues will fit within the viewport, irrespective of whether the limiting dimension is width or height.
      */
-    scale = min(windowWidth / (144 + 58 * 2.5), windowHeight / (72 + 58 * 2.5));
+    //scale = min(windowWidth / (144 + 58 * 2.5), windowHeight / (72 + 58 * 2.5));
+    scale = min(900 / (144 + 58 * 2.5), 600 / (72 + 58 * 2.5));
+
 
     tableWidth = 144 * scale; // Full-size table width scaled down
     tableHeight = 72 * scale; // Full-size table height scaled down
