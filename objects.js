@@ -51,16 +51,7 @@ class Ball {
 class CueBall extends Ball {
     constructor(x, y, diameter) {
         super(x, y, diameter, 'white');
-        World.add(world, this.body);
-        //console.log("cue ball initialized");
     }
-
-    draw() {
-        fill(this.color);
-        ellipse(this.body.position.x, this.body.position.y, this.diameter, this.diameter);
-        //console.log("cue ball drawn");
-    }
-
 }
 
 class Cue {
@@ -86,9 +77,16 @@ class Cue {
         push();
         translate(this.body.position.x, this.body.position.y);
         rotate(this.body.angle);
-        stroke(139, 69, 19);
-        fill(0);
-        rect(0, 0, this.length, 3.5 * scale); // Draw the cue as a rectangle
+
+        // Draw the main part of the cue
+        stroke(139, 69, 19); // Brown color for the cue
+        fill(0); // Black for the main part
+        rect(0, 0, this.length, 3.5 * scale);
+
+        // Draw the tip of the cue
+        fill(255);
+        rect(this.length / 2, 0, 10, 3.5 * scale); // Adjust the size of the tip as needed
+
         pop();
     }
 
@@ -102,6 +100,8 @@ class Cue {
 
     setPosition(x, y) {
         Body.setPosition(this.body, { x: x, y: y });
+        this.x = x;
+        this.y = y;
         this.initialPosition = createVector(x, y);
     }
 

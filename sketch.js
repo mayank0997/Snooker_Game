@@ -35,6 +35,10 @@ var cueBackDistance = 20; // Distance to move cue back
 var cueHitDistance = 0; // Distance cue moves forward when hitting
 var cueHitSpeed = 10; // Speed of the cue hit
 var isCueHitting = false; // Flag to check if cue is hitting
+var cueStartX, cueStartY;
+var isCuePulledBack = false;
+var cueAnimationSpeed = 5;
+var isCuePullingBack = false;
 
 const ROTATION_STEP = 0.1; // The angle in radians for each step
 
@@ -115,43 +119,33 @@ function resetGame() {
 }
 
 function draw() {
-    background(200); // Table background color
+    background(200);
     drawTable();
-    //createCushions();
     cushions.forEach(cushion => cushion.draw());
 
-    // Apply constraints to all balls
     balls.forEach(ball => {
         constrainBall(ball);
         ball.draw();
+        // Update ball positions in p5.js objects
+        ball.x = ball.body.position.x;
+        ball.y = ball.body.position.y;
     });
 
     constrainBall(cueBall);
     cueBall.draw();
+    cueBall.x = cueBall.body.position.x;
+    cueBall.y = cueBall.body.position.y;
     cue.draw();
 
     if (isCueHitting) {
-        animateCueHit(); // Call animateCueHit function to handle cue movement
+        animateCueHit();
     }
 
-    for (let pocket of pockets) {
-        pocket.draw();
-    }
+    pockets.forEach(pocket => pocket.draw());
 
-    balls.forEach(ball => {
-        ball.relativeX = (ball.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth;
-        ball.relativeY = (ball.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight;
-        ball.relativeVelocity = { x: ball.body.velocity.x / scale, y: ball.body.velocity.y / scale };
-        ball.relativeAngle = ball.body.angle;
-    });
-
-    // Update cue's relative position
-    cue.relativeX = (cue.body.position.x - (canvasWidth / 2 - tableWidth / 2)) / tableWidth;
-    cue.relativeY = (cue.body.position.y - (canvasHeight / 2 - tableHeight / 2)) / tableHeight;
-    cue.relativeWidth = cue.length / scale;
-
-    Engine.update(engine); // Update physics engine
+    Engine.update(engine);
 }
+
 
 // Function to constrain a ball within table bounds and apply damping
 function constrainBall(ball) {
@@ -315,6 +309,8 @@ function mouseDragged() {
     // Move the cue ball with the mouse
     if (isDraggingCueBall) {
         Matter.Body.setPosition(cueBall.body, { x: mouseX, y: mouseY });
+        cueBall.x = mouseX;
+        cueBall.y = mouseY;
     }
 
     // Move the cue with the mouse
@@ -322,8 +318,8 @@ function mouseDragged() {
         // Constrain the new position within the canvas boundaries
         let newX = constrain(mouseX, cue.length / 2, canvasWidth - cue.length / 2);
         let newY = constrain(mouseY, cue.length / 2, canvasHeight - cue.length / 2);
-
         cue.setPosition(newX, newY);
+        Matter.Body.setPosition(cue.body, { x: newX, y: newY });
     }
 }
 
@@ -432,45 +428,54 @@ function keyPressed() {
     } else if (keyCode === RIGHT_ARROW) {
         cue.setAngle(cue.angle + ROTATION_STEP);
     } else if (keyCode === 32) { // Space bar for hitting the ball
-        hitCueBall();
+        if (!isCueHitting) {
+            hitCueBall();
+        }
     }
 }
 
 
 function hitCueBall() {
-    let cueBallPos = cueBall.body.position;
-    let cuePos = cue.body.position;
-    let distance = dist(cueBallPos.x, cueBallPos.y, cuePos.x, cuePos.y);
-
-    // Get the current velocity of the cue ball
-    let cueBallVelocity = Matter.Vector.magnitude(cueBall.body.velocity);
-
-    // Define a maximum allowed velocity
-    let maxVelocity = 1; // Adjust this value as needed
-
-    if (distance < 50 * scale && cueBallVelocity < maxVelocity) {
-        isCueHitting = true;
-        cueHitDistance = cueBackDistance;
-    } else if (cueBallVelocity >= maxVelocity) {
-        console.log("Cue ball velocity too high, not applying additional force.");
-    }
+    isCueHitting = true;
+    isCuePullingBack = true; // Setting this flag to true to start the pullback process
+    cuePullBackDistance = 20 * scale; // Adjust the pull-back distance
+    cuePushForwardDistance = 20 * scale; // Adjust the push-forward distance
+    cueOriginalPosition = createVector(cue.x, cue.y); // Store original position
 }
 
 function animateCueHit() {
-    if (cueHitDistance > 0) {
-        // Move the cue backward
-        cue.setPosition(cue.x, cue.y - cueHitSpeed);
-        cueHitDistance -= cueHitSpeed;
-    } else {
-        // Move cue forward and apply force to the cue ball
-        let forceDirection = p5.Vector.fromAngle(cue.angle);
-        let forceMagnitude = 0.002;
-        let force = forceDirection.mult(forceMagnitude);
-        Body.applyForce(cueBall.body, cueBall.body.position, force);
+    if (isCuePullingBack) {
+        if (cuePullBackDistance > 0) {
+            let moveX = -cueAnimationSpeed * cos(cue.angle);
+            let moveY = -cueAnimationSpeed * sin(cue.angle);
+            cue.setPosition(cue.x + moveX, cue.y + moveY);
+            cuePullBackDistance -= cueAnimationSpeed;
+        } else {
+            isCuePullingBack = false;
+            cuePushForwardDistance = cuePullBackDistance + 10 * scale;
+        }
+    } else if (cuePushForwardDistance > 0) {
+        let moveX = cueAnimationSpeed * cos(cue.angle);
+        let moveY = cueAnimationSpeed * sin(cue.angle);
+        cue.setPosition(cue.x + moveX, cue.y + moveY);
+        cuePushForwardDistance -= cueAnimationSpeed;
 
-        // Reset the cue position after hitting
-        cue.resetPosition();
+        let cueTipX = cue.x + cos(cue.angle) * cue.length / 2;
+        let cueTipY = cue.y + sin(cue.angle) * cue.length / 2;
+
+        let distance = dist(cueTipX, cueTipY, cueBall.body.position.x, cueBall.body.position.y);
+        console.log("Distance to cue ball from tip:", distance);
+        if (distance < 18 * scale) {
+            let forceDirection = p5.Vector.fromAngle(cue.angle);
+            let forceMagnitude = 0.004;
+            let force = forceDirection.mult(forceMagnitude);
+            console.log("force being applied");
+            Body.applyForce(cueBall.body, cueBall.body.position, force);
+            isCueHitting = false;
+            cue.setPosition(cueOriginalPosition.x, cueOriginalPosition.y);
+        }
+    } else if (!isCuePullingBack && cuePushForwardDistance <= 0 && isCueHitting) {
         isCueHitting = false;
+        cue.setPosition(cueOriginalPosition.x, cueOriginalPosition.y);
     }
 }
-
