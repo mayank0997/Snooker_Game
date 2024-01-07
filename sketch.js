@@ -23,6 +23,7 @@ var cueLength;
 
 var isDraggingCueBall = false;
 var isDraggingCue = false;
+var isCueBallPocketed;
 
 var scale;
 
@@ -45,6 +46,7 @@ var resetButton;
 
 var score;
 var promptMessage;
+
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
@@ -60,8 +62,7 @@ function setup() {
     var cueBallStartX = cueLength * 1.55;
     var cueBallStartY = canvasHeight / 2;
 
-    cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
-
+    isCueBallPocketed = true;
     cushions = [];
     createCushions();
     pockets = [];
@@ -95,8 +96,11 @@ function setup() {
                 // Check if the cue ball falls into a pocket
                 if (ball === cueBall.body) {
                     // Reset cue ball position
-                    Body.setPosition(cueBall.body, { x: cueBallStartX, y: cueBallStartY });
-                    Body.setVelocity(cueBall.body, { x: 0, y: 0 }); // Reset velocity
+                    isCueBallPocketed = true;
+                    //Body.setPosition(cueBall.body, { x: cueBallStartX, y: cueBallStartY });
+                    //Body.setVelocity(cueBall.body, { x: 0, y: 0 }); // Reset velocity
+                    World.remove(world, cueBall);
+                    cueBall = null;
                     score--;
                 } else {
                     // Remove other balls
@@ -166,6 +170,9 @@ function draw() {
     text("Score: " + score, canvasWidth - 30, 20);
 
     // Display Prompt Message below the table
+    if (isCueBallPocketed) {
+        promptMessage = "Place the cue ball using the mouse";
+    }
     textAlign(CENTER, BOTTOM);
     text(promptMessage, canvasWidth / 2, canvasHeight - 10);
 
@@ -182,9 +189,11 @@ function draw() {
     });
 
     constrainBall(cueBall);
-    cueBall.draw();
-    cueBall.x = cueBall.body.position.x;
-    cueBall.y = cueBall.body.position.y;
+    if (cueBall) {
+        cueBall.draw();
+        cueBall.x = cueBall.body.position.x;
+        cueBall.y = cueBall.body.position.y;
+    }
     cue.draw();
 
     if (isCueHitting) {
@@ -230,22 +239,25 @@ function resizeSketch() {
 
 function mousePressed() {
     // Check if the mouse is over the cue ball
-    if (dist(mouseX, mouseY, cueBall.body.position.x, cueBall.body.position.y) < cueBall.diameter / 2) {
-        isDraggingCueBall = true;
+    if (cueBall) {
+        if (dist(mouseX, mouseY, cueBall.body.position.x, cueBall.body.position.y) < cueBall.diameter / 2) {
+            isDraggingCueBall = true;
+        }
     }
     // Check if the mouse is close to the cue (anywhere on the cue, not just the end)
-    else if (dist(mouseX, mouseY, cue.body.position.x, cue.body.position.y) < cue.length / 2) {
+    if (dist(mouseX, mouseY, cue.body.position.x, cue.body.position.y) < cue.length / 2) {
         isDraggingCue = true;
     }
 }
 
-
 function mouseDragged() {
     // Move the cue ball with the mouse
-    if (isDraggingCueBall) {
-        Matter.Body.setPosition(cueBall.body, { x: mouseX, y: mouseY });
-        cueBall.x = mouseX;
-        cueBall.y = mouseY;
+    if (cueBall) {
+        if (isDraggingCueBall) {
+            Matter.Body.setPosition(cueBall.body, { x: mouseX, y: mouseY });
+            cueBall.x = mouseX;
+            cueBall.y = mouseY;
+        }
     }
 
     // Move the cue with the mouse
@@ -261,6 +273,28 @@ function mouseDragged() {
 function mouseReleased() {
     isDraggingCueBall = false;
     isDraggingCue = false;
+
+    var cushionOverlap = 2 * scale;
+
+    var minX = canvasWidth / 2 - tableWidth / 2 + cushionOverlap;
+    var maxX = canvasWidth / 2 + tableWidth / 2 - cushionOverlap;
+    var minY = canvasHeight / 2 - tableHeight / 2 + cushionOverlap;
+    var maxY = canvasHeight / 2 + tableHeight / 2 - cushionOverlap;
+
+    if (isCueBallPocketed) {
+        // Ensure the placement is within the table boundaries
+        if (mouseX > minX && mouseX < maxX && mouseY > minY && mouseY < maxY) {
+            if (!cueBall) {
+                // Create the cue ball if it does not exist
+                cueBall = new CueBall(mouseX, mouseY, ballDiameter);
+            } else {
+                // Place the existing cue ball
+                Body.setPosition(cueBall.body, { x: mouseX, y: mouseY });
+            }
+            isCueBallPocketed = false; // Reset the flag
+            promptMessage = "";
+        }
+    }
 }
 
 function keyPressed() {

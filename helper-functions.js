@@ -109,15 +109,17 @@ function constrainBall(ball) {
     var maxY = canvasHeight / 2 + tableHeight / 2 - cushionOverlap;
 
     // Constrain position
-    var posX = constrain(ball.body.position.x, minX, maxX);
-    var posY = constrain(ball.body.position.y, minY, maxY);
-    Body.setPosition(ball.body, { x: posX, y: posY });
+    if (ball) {
+        var posX = constrain(ball.body.position.x, minX, maxX);
+        var posY = constrain(ball.body.position.y, minY, maxY);
+        Body.setPosition(ball.body, { x: posX, y: posY });
 
-    // Apply damping to velocity
-    var damping = 0.98;
-    var velX = ball.body.velocity.x * damping;
-    var velY = ball.body.velocity.y * damping;
-    Body.setVelocity(ball.body, { x: velX, y: velY });
+        // Apply damping to velocity
+        var damping = 0.98;
+        var velX = ball.body.velocity.x * damping;
+        var velY = ball.body.velocity.y * damping;
+        Body.setVelocity(ball.body, { x: velX, y: velY });
+    }
 }
 
 function hitCueBall() {
