@@ -229,12 +229,11 @@ function animateCueHit() {
             console.log("Distance to cue ball from tip:", distance);
             if (distance < 18 * scale) {
                 var forceDirection = p5.Vector.fromAngle(cue.angle);
-                var forceMagnitude = 0.004;
+                var forceMagnitude = 0.002 * scale;
                 var force = forceDirection.mult(forceMagnitude);
                 console.log("force being applied");
                 Body.applyForce(cueBall.body, cueBall.body.position, force);
                 isCueHitting = false;
-                //cue.setPosition(cueOriginalPosition.x, cueOriginalPosition.y);
                 cue.setPosition(cueInitialX, cueInitialY);
             }
         }

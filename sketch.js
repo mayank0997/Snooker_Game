@@ -2,7 +2,6 @@
 
 //matter.js 
 var Engine = Matter.Engine;
-//var Render = Matter.Render;
 var World = Matter.World;
 var Bodies = Matter.Bodies;
 var Body = Matter.Body;
@@ -75,8 +74,8 @@ function setup() {
     cue = new Cue(20 * scale, canvasHeight / 2, cueLength, 0);
     cue.draw();
 
-    score = 0; // Keep track of the score
-    promptMessage = ""; // Message to display for impact type
+    score = 0;
+    promptMessage = "";
 
     pottedBallsHistory = [];
 
@@ -100,7 +99,7 @@ function setup() {
 
     // Create reset button
     resetButton = createButton('Reset Game');
-    resetButton.position(10, canvasHeight - 30); // Adjust the position as needed
+    resetButton.position(10, canvasHeight - 30);
     resetButton.mousePressed(resetGame);
 }
 
