@@ -45,7 +45,6 @@ var resetButton;
 
 var score;
 var promptMessage;
-
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
@@ -74,7 +73,7 @@ function setup() {
     cue.draw();
 
     score = 0; // Keep track of the score
-    promptMessage = "PROMPT"; // Message to display for impact type
+    promptMessage = ""; // Message to display for impact type
 
     Events.on(engine, 'collisionStart', function (event) {
         var pairs = event.pairs;
@@ -106,6 +105,34 @@ function setup() {
                     score++;
                 }
             }
+            // Check for cue striking the cue ball
+            if ((bodyA.label === 'Cue' && bodyB.label === 'cueBall') || (bodyA.label === 'cueBall' && bodyB.label === 'Cue')) {
+                promptMessage = "Cue striking cue ball";
+            }
+
+            // Check for ball pocketed
+            else if (bodyA.label === 'Pocket' || bodyB.label === 'Pocket') {
+                var ball = bodyA.label === 'Pocket' ? bodyB : bodyA;
+                if (ball.label === 'cueBall') {
+                    promptMessage = "Cue ball pocketed";
+                    score--;
+                } else {
+                    // Include color of the ball in the prompt
+                    promptMessage = ball.ballInstance.color + " ball pocketed";
+                    score++;
+                }
+            }
+
+            // Check for collisions between cue ball and other balls
+            else if ((bodyA.label == 'cueBall' && bodyB.label == 'Ball') || (bodyA.label == 'Ball' && bodyB.label == 'cueBall')) {
+                var otherBall = bodyA.label === 'cueBall' ? bodyB : bodyA;
+                promptMessage = "Cue ball collided with " + otherBall.ballInstance.color + " ball";
+            }
+
+            // Check for cue ball striking cushion
+            else if ((bodyA.label == 'cueBall' && bodyB.label == 'Cushion') || (bodyA.label == 'Cushion' && bodyB.label == 'cueBall')) {
+                promptMessage = "Cue ball struck cushion";
+            }
         }
     });
 
@@ -132,7 +159,7 @@ function draw() {
     textSize(getTextSize());
     textAlign(LEFT, TOP);
     textWrap(WORD);
-    text("Instructions: Use arrow keys to adjust cue angle, space to hit", canvasWidth / 10, canvasHeight / 30, canvasWidth / 6);
+    text("Instructions: Use left and right arrow keys to adjust cue angle, space to hit", canvasWidth / 10, canvasHeight / 30, canvasWidth / 6);
 
     // Display Score
     textAlign(RIGHT, TOP);

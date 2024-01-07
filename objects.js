@@ -7,13 +7,12 @@ class Ball {
         this.body = Bodies.circle(x, y, diameter / 2, {
             restitution: 0.9,
             friction: 0.2,
-            frictionAir: 0.01
+            frictionAir: 0.01,
+            label: 'Ball'
         });
         // Add body to Matter.World in sketch.js
         World.add(world, this.body);
-        // Initialize relative positions
-        this.relativeX = 0;
-        this.relativeY = 0;
+        this.body.ballInstance = this;
     }
 
     isInPocket(pocketPositions) {
@@ -37,6 +36,7 @@ class Ball {
 class CueBall extends Ball {
     constructor(x, y, diameter) {
         super(x, y, diameter, 'white');
+        this.body.label = 'cueBall';
     }
 }
 
@@ -129,7 +129,8 @@ class Pocket {
         this.size = size;
         this.body = Bodies.circle(x, y, size / 2, {
             isSensor: true,
-            isStatic: true
+            isStatic: true,
+            label: 'Pocket'
         });
         World.add(world, this.body);
     }
