@@ -53,9 +53,6 @@ class Cue {
             isStatic: true
         });
         World.add(world, this.body);
-        // Initialize relative positions
-        this.relativeX = 0;
-        this.relativeY = 0;
     }
 
     draw() {
@@ -93,7 +90,6 @@ class Cue {
     resetPosition() {
         // Reset the cue's position to its initial position
         Body.setPosition(this.body, { x: this.initialPosition.x, y: this.initialPosition.y });
-        //Body.setAngle(this.body, this.angle); // Reset angle if needed
     }
 
     setAngle(angle) {
