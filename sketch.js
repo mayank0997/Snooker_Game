@@ -43,6 +43,9 @@ const ROTATION_STEP = 0.1; // The angle in radians for each step
 
 var resetButton;
 
+var score;
+var promptMessage;
+
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
@@ -70,6 +73,9 @@ function setup() {
     cue = new Cue(20 * scale, canvasHeight / 2, cueLength, 0);
     cue.draw();
 
+    score = 0; // Keep track of the score
+    promptMessage = "PROMPT"; // Message to display for impact type
+
     Events.on(engine, 'collisionStart', function (event) {
         let pairs = event.pairs;
 
@@ -87,10 +93,12 @@ function setup() {
                     // Reset cue ball position
                     Body.setPosition(cueBall.body, { x: cueBallStartX, y: cueBallStartY });
                     Body.setVelocity(cueBall.body, { x: 0, y: 0 }); // Reset velocity
+                    score--;
                 } else {
                     // Remove other balls
                     World.remove(world, ball);
                     balls = balls.filter(b => b.body !== ball);
+                    score++;
                 }
             }
         }
@@ -113,6 +121,22 @@ function resetGame() {
 
 function draw() {
     background(200);
+
+    // Display Instructions
+    fill(0); // Black text
+    textSize(getTextSize());
+    textAlign(LEFT, TOP);
+    textWrap(WORD);
+    text("Instructions: Use arrow keys to adjust cue angle, space to hit", canvasWidth / 10, canvasHeight / 30, canvasWidth / 6);
+
+    // Display Score
+    textAlign(RIGHT, TOP);
+    text("Score: " + score, canvasWidth - 30, 20);
+
+    // Display Prompt Message below the table
+    textAlign(CENTER, BOTTOM);
+    text(promptMessage, canvasWidth / 2, canvasHeight - 10);
+
     drawTable();
     cushions.forEach(cushion => cushion.draw());
     pockets.forEach(pocket => pocket.draw());

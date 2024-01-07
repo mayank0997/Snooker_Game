@@ -1,3 +1,8 @@
+
+function getTextSize() {
+    return max(8, 7 * scale);
+}
+
 function drawTable() {
     // Draw the main table area
     fill(0, 100, 0); // Dark green for the snooker table
