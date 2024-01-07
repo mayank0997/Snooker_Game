@@ -83,60 +83,10 @@ function setup() {
             var bodyA = pairs[i].bodyA;
             var bodyB = pairs[i].bodyB;
 
-            // Check if either of the bodies is a pocket
-            if (bodyA.isSensor || bodyB.isSensor) {
-                var ball;
-                // Determine which one is the ball and which one is the pocket
-                if (bodyA.isSensor) {
-                    ball = bodyB;
-                } else {
-                    ball = bodyA;
-                }
-
-                // Check if the cue ball falls into a pocket
-                if (ball === cueBall.body) {
-                    // Reset cue ball position
-                    isCueBallPocketed = true;
-                    //Body.setPosition(cueBall.body, { x: cueBallStartX, y: cueBallStartY });
-                    //Body.setVelocity(cueBall.body, { x: 0, y: 0 }); // Reset velocity
-                    World.remove(world, cueBall);
-                    cueBall = null;
-                    score--;
-                } else {
-                    // Remove other balls
-                    World.remove(world, ball);
-                    balls = balls.filter(b => b.body !== ball);
-                    score++;
-                }
-            }
-            // Check for cue striking the cue ball
-            if ((bodyA.label === 'Cue' && bodyB.label === 'cueBall') || (bodyA.label === 'cueBall' && bodyB.label === 'Cue')) {
-                promptMessage = "Cue striking cue ball";
-            }
-
-            // Check for ball pocketed
-            else if (bodyA.label === 'Pocket' || bodyB.label === 'Pocket') {
-                var ball = bodyA.label === 'Pocket' ? bodyB : bodyA;
-                if (ball.label === 'cueBall') {
-                    promptMessage = "Cue ball pocketed";
-                    score--;
-                } else {
-                    // Include color of the ball in the prompt
-                    promptMessage = ball.ballInstance.color + " ball pocketed";
-                    score++;
-                }
-            }
-
-            // Check for collisions between cue ball and other balls
-            else if ((bodyA.label == 'cueBall' && bodyB.label == 'Ball') || (bodyA.label == 'Ball' && bodyB.label == 'cueBall')) {
-                var otherBall = bodyA.label === 'cueBall' ? bodyB : bodyA;
-                promptMessage = "Cue ball collided with " + otherBall.ballInstance.color + " ball";
-            }
-
-            // Check for cue ball striking cushion
-            else if ((bodyA.label == 'cueBall' && bodyB.label == 'Cushion') || (bodyA.label == 'Cushion' && bodyB.label == 'cueBall')) {
-                promptMessage = "Cue ball struck cushion";
-            }
+            handlePocketCollision(bodyA, bodyB);
+            handleCueCollision(bodyA, bodyB);
+            handleBallCollision(bodyA, bodyB);
+            handleCushionCollision(bodyA, bodyB);
         }
     });
 
@@ -151,6 +101,7 @@ function setup() {
 }
 
 function resetGame() {
+    cueBall = null;
     setup();
 }
 
@@ -208,6 +159,7 @@ function windowResized() {
     if (resetButton) {
         resetButton.remove();
     }
+    cueBall = null;
     setup();
 }
 

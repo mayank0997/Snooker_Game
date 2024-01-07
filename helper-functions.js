@@ -122,6 +122,45 @@ function constrainBall(ball) {
     }
 }
 
+function handlePocketCollision(bodyA, bodyB) {
+    if (bodyA.isSensor || bodyB.isSensor) {
+        var ball = bodyA.isSensor ? bodyB : bodyA;
+
+        if (ball === cueBall.body) {
+            isCueBallPocketed = true;
+            World.remove(world, cueBall);
+            cueBall = null;
+            score--;
+            promptMessage = "Cue ball pocketed";
+        } else {
+            World.remove(world, ball);
+            balls = balls.filter(b => b.body !== ball);
+            score++;
+            promptMessage = ball.ballInstance.color + " ball pocketed";
+        }
+    }
+}
+
+function handleCueCollision(bodyA, bodyB) {
+    if ((bodyA.label === 'Cue' && bodyB.label === 'cueBall') || (bodyA.label === 'cueBall' && bodyB.label === 'Cue')) {
+        promptMessage = "Cue striking cue ball";
+    }
+}
+
+function handleBallCollision(bodyA, bodyB) {
+    if ((bodyA.label === 'cueBall' && bodyB.label === 'Ball') || (bodyA.label === 'Ball' && bodyB.label === 'cueBall')) {
+        var otherBall = bodyA.label === 'cueBall' ? bodyB : bodyA;
+        promptMessage = "Cue ball collided with " + otherBall.ballInstance.color + " ball";
+    }
+}
+
+function handleCushionCollision(bodyA, bodyB) {
+    if ((bodyA.label === 'cueBall' && bodyB.label === 'Cushion') || (bodyA.label === 'Cushion' && bodyB.label === 'cueBall')) {
+        promptMessage = "Cue ball struck cushion";
+    }
+}
+
+
 function hitCueBall() {
     isCueHitting = true;
     isCuePullingBack = true; // Setting this flag to true to start the pullback process
@@ -150,17 +189,19 @@ function animateCueHit() {
         var cueTipX = cue.x + cos(cue.angle) * cue.length / 2;
         var cueTipY = cue.y + sin(cue.angle) * cue.length / 2;
 
-        var distance = dist(cueTipX, cueTipY, cueBall.body.position.x, cueBall.body.position.y);
-        console.log("Distance to cue ball from tip:", distance);
-        if (distance < 18 * scale) {
-            var forceDirection = p5.Vector.fromAngle(cue.angle);
-            var forceMagnitude = 0.004;
-            var force = forceDirection.mult(forceMagnitude);
-            console.log("force being applied");
-            Body.applyForce(cueBall.body, cueBall.body.position, force);
-            isCueHitting = false;
-            //cue.setPosition(cueOriginalPosition.x, cueOriginalPosition.y);
-            cue.setPosition(cueInitialX, cueInitialY);
+        if (cueBall) {
+            var distance = dist(cueTipX, cueTipY, cueBall.body.position.x, cueBall.body.position.y);
+            console.log("Distance to cue ball from tip:", distance);
+            if (distance < 18 * scale) {
+                var forceDirection = p5.Vector.fromAngle(cue.angle);
+                var forceMagnitude = 0.004;
+                var force = forceDirection.mult(forceMagnitude);
+                console.log("force being applied");
+                Body.applyForce(cueBall.body, cueBall.body.position, force);
+                isCueHitting = false;
+                //cue.setPosition(cueOriginalPosition.x, cueOriginalPosition.y);
+                cue.setPosition(cueInitialX, cueInitialY);
+            }
         }
     } else if (!isCuePullingBack && cuePushForwardDistance <= 0 && isCueHitting) {
         isCueHitting = false;
