@@ -90,16 +90,16 @@ function initializeBalls(mode) {
         for (var i = 0; i < 15; i++)
             colors.push('red');
         colors.forEach(color => {
-            let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
-            let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
+            var x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
+            var y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
             balls.push(new Ball(x, y, ballDiameter, color));
         });
     } else if (mode === 'randomReds') {
         // Place red balls in random positions and colored balls in official positions
         initializeColoredBalls();
-        for (let i = 0; i < 15; i++) {
-            let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
-            let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
+        for (var i = 0; i < 15; i++) {
+            var x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
+            var y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
             balls.push(new Ball(x, y, ballDiameter, 'red'));
         }
     } else if (mode === 'start') {
