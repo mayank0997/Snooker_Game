@@ -28,7 +28,7 @@ var scale;
 
 var canvasWidth, canvasHeight;
 
-let baulkLineX;
+var baulkLineX;
 
 var cueInitialX;
 var cueInitialY;
@@ -58,8 +58,8 @@ function setup() {
     initializeBalls();
 
     // Define starting position for the cue ball
-    let cueBallStartX = cueLength * 1.55;
-    let cueBallStartY = canvasHeight / 2;
+    var cueBallStartX = cueLength * 1.55;
+    var cueBallStartY = canvasHeight / 2;
 
     cueBall = new CueBall(cueBallStartX, cueBallStartY, ballDiameter);
 
@@ -77,16 +77,21 @@ function setup() {
     promptMessage = "PROMPT"; // Message to display for impact type
 
     Events.on(engine, 'collisionStart', function (event) {
-        let pairs = event.pairs;
+        var pairs = event.pairs;
 
-        for (let i = 0; i < pairs.length; i++) {
-            let bodyA = pairs[i].bodyA;
-            let bodyB = pairs[i].bodyB;
+        for (var i = 0; i < pairs.length; i++) {
+            var bodyA = pairs[i].bodyA;
+            var bodyB = pairs[i].bodyB;
 
             // Check if either of the bodies is a pocket
             if (bodyA.isSensor || bodyB.isSensor) {
+                var ball;
                 // Determine which one is the ball and which one is the pocket
-                let ball = bodyA.isSensor ? bodyB : bodyA;
+                if (bodyA.isSensor) {
+                    ball = bodyB;
+                } else {
+                    ball = bodyA;
+                }
 
                 // Check if the cue ball falls into a pocket
                 if (ball === cueBall.body) {
@@ -219,8 +224,8 @@ function mouseDragged() {
     // Move the cue with the mouse
     if (isDraggingCue) {
         // Constrain the new position within the canvas boundaries
-        let newX = constrain(mouseX, cue.length / 2, canvasWidth - cue.length / 2);
-        let newY = constrain(mouseY, cue.length / 2, canvasHeight - cue.length / 2);
+        var newX = constrain(mouseX, cue.length / 2, canvasWidth - cue.length / 2);
+        var newY = constrain(mouseY, cue.length / 2, canvasHeight - cue.length / 2);
         cue.setPosition(newX, newY);
         Matter.Body.setPosition(cue.body, { x: newX, y: newY });
     }
