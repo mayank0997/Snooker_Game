@@ -57,7 +57,7 @@ function setup() {
     world = engine.world;
     drawTable();
     balls = [];
-    initializeBalls();
+    initializeBalls('start');
 
     // Define starting position for the cue ball
     var cueBallStartX = cueLength * 1.55;
@@ -101,10 +101,24 @@ function setup() {
     resetButton = createButton('Reset Game');
     resetButton.position(10, canvasHeight - 30);
     resetButton.mousePressed(resetGame);
+
+    // Additional buttons for ball placement modes
+    randomRedsButton = createButton('Random Reds');
+    randomRedsButton.position(10, canvasHeight - 60);
+    randomRedsButton.mousePressed(() => initializeBalls('randomReds'));
+
+    randomAllButton = createButton('Random All');
+    randomAllButton.position(10, canvasHeight - 90);
+    randomAllButton.mousePressed(() => initializeBalls('randomAll'));
+
+    updateButtons();
 }
 
 function resetGame() {
-    cueBall = null;
+    if (cueBall) {
+        World.remove(world, cueBall.body);
+        cueBall = null;
+    }
     setup();
 }
 
@@ -159,9 +173,12 @@ function draw() {
 
 
 function windowResized() {
-    if (resetButton) {
+    if (resetButton)
         resetButton.remove();
-    }
+    if (randomAllButton)
+        randomAllButton.remove();
+    if (randomRedsButton)
+        randomRedsButton.remove();
     cueBall = null;
     setup();
 }

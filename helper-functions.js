@@ -48,33 +48,95 @@ function createPockets() {
     }
 }
 
-function initializeBalls() {
-    // Initialize and create each ball
-    var initBallX = canvasWidth / 2 + tableWidth / 5;
-    var initBallY = canvasHeight / 2; // Center of the table height-wise
-    balls.push(new Ball(initBallX, initBallY, ballDiameter, 'pink'));
-    balls.push(new Ball(baulkLineX, initBallY + 11.5 * scale, ballDiameter, 'yellow'))
+function updateButtons() {
+    if (!resetButton) {
+        resetButton = createButton('Reset Game');
+        resetButton.mousePressed(resetGame);
+    }
+    resetButton.position(10, canvasHeight - 30);
+    resetButton.style('font-size', max(10, scale * 8) + 'px');
 
-    balls.push(new Ball(baulkLineX, initBallY - 11.5 * scale, ballDiameter, 'green'));
-    balls.push(new Ball(baulkLineX, initBallY, ballDiameter, 'brown'));
+    if (!randomRedsButton) {
+        randomRedsButton = createButton('Random Reds');
+        randomRedsButton.mousePressed(() => initializeBalls('randomReds'));
+    }
+    randomRedsButton.position(10, canvasHeight - 60);
+    randomRedsButton.style('font-size', max(10, scale * 8) + 'px');
 
-    // Blue ball at the center of the table
-    balls.push(new Ball(canvasWidth / 2, canvasHeight / 2, ballDiameter, 'blue'));
+    if (!randomAllButton) {
+        randomAllButton = createButton('Random All');
+        randomAllButton.mousePressed(() => initializeBalls('randomAll'));
+    }
+    randomAllButton.position(10, canvasHeight - 90);
+    randomAllButton.style('font-size', max(10, scale * 8) + 'px');
+}
 
-    var redsTriangleStartX = canvasWidth / 2 + tableWidth / 4.3;
-    var redsTriangleStartY = canvasHeight / 2;
-    var rowLength = 5;
-    for (var row = 0; row < rowLength; row++) {
-        for (var col = 0; col <= row; col++) {
-            var x = redsTriangleStartX + row * ballDiameter;
-            var y = redsTriangleStartY + row * ballDiameter / 2 - col * ballDiameter;
-            balls.push(new Ball(x, y, ballDiameter, 'red'));
-        }
+
+function initializeBalls(mode) {
+    // Clear existing balls
+    World.remove(world, balls.map(ball => ball.body));
+    balls = [];
+
+    if (cueBall) {
+        World.remove(world, cueBall.body);
+        isCueBallPocketed = true;
+        cueBall = null;
     }
 
-    var blackBallX = redsTriangleStartX + 7 * ballDiameter;
-    balls.push(new Ball(blackBallX, redsTriangleStartY, ballDiameter, 'black'));
+    if (mode === 'randomReds') {
+        // Place red balls in random positions
+        for (let i = 0; i < 15; i++) {
+            let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
+            let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
+            balls.push(new Ball(x, y, ballDiameter, 'red'));
+        }
+    } else if (mode === 'randomAll') {
+        // Add colored balls at random positions
+        const colors = ['pink', 'yellow', 'green', 'brown', 'blue', 'black'];
+        colors.forEach(color => {
+            let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
+            let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
+            balls.push(new Ball(x, y, ballDiameter, color));
+        });
+
+        // Add random red balls
+        for (let i = 0; i < 15; i++) {
+            let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
+            let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
+            balls.push(new Ball(x, y, ballDiameter, 'red'));
+        }
+    } else if (mode == 'start') {
+        // Initialize and create each ball
+        var initBallX = canvasWidth / 2 + tableWidth / 5;
+        var initBallY = canvasHeight / 2; // Center of the table height-wise
+        balls.push(new Ball(initBallX, initBallY, ballDiameter, 'pink'));
+        balls.push(new Ball(baulkLineX, initBallY + 11.5 * scale, ballDiameter, 'yellow'))
+
+        balls.push(new Ball(baulkLineX, initBallY - 11.5 * scale, ballDiameter, 'green'));
+        balls.push(new Ball(baulkLineX, initBallY, ballDiameter, 'brown'));
+
+        // Blue ball at the center of the table
+        balls.push(new Ball(canvasWidth / 2, canvasHeight / 2, ballDiameter, 'blue'));
+
+        var redsTriangleStartX = canvasWidth / 2 + tableWidth / 4.3;
+        var redsTriangleStartY = canvasHeight / 2;
+        var rowLength = 5;
+        for (var row = 0; row < rowLength; row++) {
+            for (var col = 0; col <= row; col++) {
+                var x = redsTriangleStartX + row * ballDiameter;
+                var y = redsTriangleStartY + row * ballDiameter / 2 - col * ballDiameter;
+                balls.push(new Ball(x, y, ballDiameter, 'red'));
+            }
+        }
+
+        var blackBallX = redsTriangleStartX + 7 * ballDiameter;
+        balls.push(new Ball(blackBallX, redsTriangleStartY, ballDiameter, 'black'));
+    }
+
+    // Reset potted balls history
+    pottedBallsHistory = [];
 }
+
 
 function createCushions() {
     cushionThickness = 2.5 * scale;
@@ -141,7 +203,7 @@ function handlePocketCollision(bodyA, bodyB) {
 
         if (ball == cueBall.body) {
             isCueBallPocketed = true;
-            World.remove(world, cueBall);
+            World.remove(world, cueBall.body);
             cueBall = null;
             score -= 4; // Standard penalty for a cue ball foul
             promptMessage = "Cue ball pocketed -4 points";
@@ -151,7 +213,8 @@ function handlePocketCollision(bodyA, bodyB) {
             promptMessage = `${ball.ballInstance.color} ball pocketed +${points} points`;
             if (ball.ballInstance.color === 'red') {
                 // Remove red ball from array and world
-                World.remove(world, ball);
+                if (ball.body)
+                    World.remove(world, ball.body);
                 balls = balls.filter(b => b.body !== ball);
                 score++;
             }
