@@ -5,7 +5,7 @@ class Ball {
         this.relativeVelocity = { x: 0, y: 0 };
         this.relativeAngle = 0;
         this.body = Bodies.circle(x, y, diameter / 2, {
-            restitution: 1,
+            restitution: 0.9,
             friction: 0.2,
             frictionAir: 0.01
         });
@@ -14,20 +14,6 @@ class Ball {
         // Initialize relative positions
         this.relativeX = 0;
         this.relativeY = 0;
-    }
-
-    updateDynamics(newDiameter, newVelocity, newAngle) {
-        this.diameter = newDiameter;
-        let newPos = this.body.position;
-        World.remove(world, this.body);
-        this.body = Bodies.circle(newPos.x, newPos.y, newDiameter / 2, {
-            restitution: 0.9,
-            friction: 0.05,
-            frictionAir: 0.01
-        });
-        Body.setVelocity(this.body, newVelocity);
-        Body.setAngle(this.body, newAngle);
-        World.add(world, this.body);
     }
 
     isInPocket(pocketPositions) {
@@ -85,7 +71,7 @@ class Cue {
 
         // Draw the tip of the cue
         fill(255);
-        rect(this.length / 2, 0, 10, 3.5 * scale); // Adjust the size of the tip as needed
+        rect(this.length / 2, 0, 10, 3.5 * scale);
 
         pop();
     }
@@ -123,7 +109,10 @@ class Cushion {
         this.height = height;
         this.body = Bodies.rectangle(x, y, width, height, {
             isStatic: true,
-            label: 'Cushion'
+            label: 'Cushion',
+            restitution: 0.5,
+            friction: 0.3
+
         });
         World.add(world, this.body);
     }
@@ -138,7 +127,10 @@ class Cushion {
 class Pocket {
     constructor(x, y, size) {
         this.size = size;
-        this.body = Bodies.circle(x, y, size / 2, { isSensor: true, isStatic: true });
+        this.body = Bodies.circle(x, y, size / 2, {
+            isSensor: true,
+            isStatic: true
+        });
         World.add(world, this.body);
     }
 
