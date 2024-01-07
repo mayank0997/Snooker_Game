@@ -2,8 +2,7 @@ class Ball {
     constructor(x, y, diameter, color) {
         this.color = color;
         this.diameter = diameter;
-        this.relativeVelocity = { x: 0, y: 0 };
-        this.relativeAngle = 0;
+        this.originalPosition = { x: x, y: y };
         this.body = Bodies.circle(x, y, diameter / 2, {
             restitution: 0.9,
             friction: 0.2,

@@ -47,6 +47,8 @@ var resetButton;
 var score;
 var promptMessage;
 
+var pottedBallsHistory;
+
 function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
@@ -75,6 +77,8 @@ function setup() {
 
     score = 0; // Keep track of the score
     promptMessage = ""; // Message to display for impact type
+
+    pottedBallsHistory = [];
 
     Events.on(engine, 'collisionStart', function (event) {
         var pairs = event.pairs;

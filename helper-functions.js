@@ -126,19 +126,45 @@ function handlePocketCollision(bodyA, bodyB) {
     if (bodyA.isSensor || bodyB.isSensor) {
         var ball = bodyA.isSensor ? bodyB : bodyA;
 
-        if (ball === cueBall.body) {
+        if (ball == cueBall.body) {
             isCueBallPocketed = true;
             World.remove(world, cueBall);
             cueBall = null;
             score--;
             promptMessage = "Cue ball pocketed";
         } else {
-            World.remove(world, ball);
-            balls = balls.filter(b => b.body !== ball);
-            score++;
-            promptMessage = ball.ballInstance.color + " ball pocketed";
+            if (ball.ballInstance.color === 'red') {
+                // Remove red ball from array and world
+                World.remove(world, ball);
+                balls = balls.filter(b => b.body !== ball);
+                score++;
+                promptMessage = "Red ball pocketed";
+            }
+            else if (ball.ballInstance.color !== 'red') {
+                // Check if the original spot is unoccupied
+                var originalSpot = ball.ballInstance.originalPosition;
+                var isSpotOccupied = balls.some(b => dist(b.x, b.y, originalSpot.x, originalSpot.y) < ballDiameter);
+                if (!isSpotOccupied) {
+                    // Return ball to original position
+                    Body.setPosition(ball, originalSpot);
+                    Body.setVelocity(ball, { x: 0, y: 0 });
+                }
+                // else handle the situation where the spot is occupied
+                promptMessage = ball.ballInstance.color + " ball returned to original position";
+            }
+            pottedBallsHistory.push(ball.ballInstance.color);
+
+            // Check for mistake (two consecutive non-red balls)
+            if (pottedBallsHistory.length >= 2) {
+                var lastTwoBalls = pottedBallsHistory.slice(-2);
+                if (lastTwoBalls[0] !== 'red' && lastTwoBalls[1] !== 'red') {
+                    promptMessage = "Mistake: Two consecutive coloured balls potted!";
+                    pottedBallsHistory = [];
+                }
+            }
         }
     }
+
 }
 
 function handleCueCollision(bodyA, bodyB) {
