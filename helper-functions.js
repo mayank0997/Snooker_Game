@@ -156,15 +156,9 @@ function handlePocketCollision(bodyA, bodyB) {
                 score++;
             }
             else if (ball.ballInstance.color !== 'red') {
-                // Check if the original spot is unoccupied
                 var originalSpot = ball.ballInstance.originalPosition;
-                var isSpotOccupied = balls.some(b => dist(b.x, b.y, originalSpot.x, originalSpot.y) < ballDiameter);
-                if (!isSpotOccupied) {
-                    // Return ball to original position
-                    Body.setPosition(ball, originalSpot);
-                    Body.setVelocity(ball, { x: 0, y: 0 });
-                }
-                // else handle the situation where the spot is occupied
+                Body.setPosition(ball, originalSpot);
+                Body.setVelocity(ball, { x: 0, y: 0 });
                 promptMessage = ball.ballInstance.color + " ball returned to original position";
             }
             pottedBallsHistory.push(ball.ballInstance.color);
