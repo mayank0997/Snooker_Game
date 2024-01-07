@@ -122,6 +122,19 @@ function constrainBall(ball) {
     }
 }
 
+function getBallPoints(color) {
+    switch (color) {
+        case 'red': return 1;
+        case 'yellow': return 2;
+        case 'green': return 3;
+        case 'brown': return 4;
+        case 'blue': return 5;
+        case 'pink': return 6;
+        case 'black': return 7;
+        default: return 0;
+    }
+}
+
 function handlePocketCollision(bodyA, bodyB) {
     if (bodyA.isSensor || bodyB.isSensor) {
         var ball = bodyA.isSensor ? bodyB : bodyA;
@@ -130,15 +143,17 @@ function handlePocketCollision(bodyA, bodyB) {
             isCueBallPocketed = true;
             World.remove(world, cueBall);
             cueBall = null;
-            score--;
-            promptMessage = "Cue ball pocketed";
+            score -= 4; // Standard penalty for a cue ball foul
+            promptMessage = "Cue ball pocketed -4 points";
         } else {
+            var points = getBallPoints(ball.ballInstance.color);
+            score += points;
+            promptMessage = `${ball.ballInstance.color} ball pocketed +${points} points`;
             if (ball.ballInstance.color === 'red') {
                 // Remove red ball from array and world
                 World.remove(world, ball);
                 balls = balls.filter(b => b.body !== ball);
                 score++;
-                promptMessage = "Red ball pocketed";
             }
             else if (ball.ballInstance.color !== 'red') {
                 // Check if the original spot is unoccupied
