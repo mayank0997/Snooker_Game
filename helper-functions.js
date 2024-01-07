@@ -83,59 +83,59 @@ function initializeBalls(mode) {
         cueBall = null;
     }
 
-    if (mode === 'randomReds') {
-        // Place red balls in random positions
-        for (let i = 0; i < 15; i++) {
-            let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
-            let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
-            balls.push(new Ball(x, y, ballDiameter, 'red'));
-        }
-    } else if (mode === 'randomAll') {
-        // Add colored balls at random positions
+    if (mode === 'randomAll') {
+        // Add all balls at random positions
         const colors = ['pink', 'yellow', 'green', 'brown', 'blue', 'black'];
+        for (var i = 0; i < 15; i++)
+            colors.push('red');
         colors.forEach(color => {
             let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
             let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
             balls.push(new Ball(x, y, ballDiameter, color));
         });
-
-        // Add random red balls
+    } else if (mode === 'randomReds') {
+        // Place red balls in random positions and colored balls in official positions
+        initializeColoredBalls();
         for (let i = 0; i < 15; i++) {
             let x = random(tableWidth / 4, 3 * tableWidth / 4) + canvasWidth / 2 - tableWidth / 2;
             let y = random(tableHeight / 4, 3 * tableHeight / 4) + canvasHeight / 2 - tableHeight / 2;
             balls.push(new Ball(x, y, ballDiameter, 'red'));
         }
-    } else if (mode == 'start') {
-        // Initialize and create each ball
-        var initBallX = canvasWidth / 2 + tableWidth / 5;
-        var initBallY = canvasHeight / 2; // Center of the table height-wise
-        balls.push(new Ball(initBallX, initBallY, ballDiameter, 'pink'));
-        balls.push(new Ball(baulkLineX, initBallY + 11.5 * scale, ballDiameter, 'yellow'))
-
-        balls.push(new Ball(baulkLineX, initBallY - 11.5 * scale, ballDiameter, 'green'));
-        balls.push(new Ball(baulkLineX, initBallY, ballDiameter, 'brown'));
-
-        // Blue ball at the center of the table
-        balls.push(new Ball(canvasWidth / 2, canvasHeight / 2, ballDiameter, 'blue'));
-
-        var redsTriangleStartX = canvasWidth / 2 + tableWidth / 4.3;
-        var redsTriangleStartY = canvasHeight / 2;
-        var rowLength = 5;
-        for (var row = 0; row < rowLength; row++) {
-            for (var col = 0; col <= row; col++) {
-                var x = redsTriangleStartX + row * ballDiameter;
-                var y = redsTriangleStartY + row * ballDiameter / 2 - col * ballDiameter;
-                balls.push(new Ball(x, y, ballDiameter, 'red'));
-            }
-        }
-
-        var blackBallX = redsTriangleStartX + 7 * ballDiameter;
-        balls.push(new Ball(blackBallX, redsTriangleStartY, ballDiameter, 'black'));
+    } else if (mode === 'start') {
+        // Initialize and create each ball in official positions
+        initializeColoredBalls();
+        initializeRedBalls();
     }
 
     // Reset potted balls history
     pottedBallsHistory = [];
 }
+
+function initializeColoredBalls() {
+    var initBallX = canvasWidth / 2 + tableWidth / 5;
+    var initBallY = canvasHeight / 2; // Center of the table height-wise
+    balls.push(new Ball(initBallX, initBallY, ballDiameter, 'pink'));
+    balls.push(new Ball(baulkLineX, initBallY + 11.5 * scale, ballDiameter, 'yellow'));
+    balls.push(new Ball(baulkLineX, initBallY - 11.5 * scale, ballDiameter, 'green'));
+    balls.push(new Ball(baulkLineX, initBallY, ballDiameter, 'brown'));
+    balls.push(new Ball(canvasWidth / 2, canvasHeight / 2, ballDiameter, 'blue'));
+    var blackBallX = canvasWidth / 2 + tableWidth / 4.3 + 7 * ballDiameter;
+    balls.push(new Ball(blackBallX, canvasHeight / 2, ballDiameter, 'black'));
+}
+
+function initializeRedBalls() {
+    var redsTriangleStartX = canvasWidth / 2 + tableWidth / 4.3;
+    var redsTriangleStartY = canvasHeight / 2;
+    var rowLength = 5;
+    for (var row = 0; row < rowLength; row++) {
+        for (var col = 0; col <= row; col++) {
+            var x = redsTriangleStartX + row * ballDiameter;
+            var y = redsTriangleStartY + row * ballDiameter / 2 - col * ballDiameter;
+            balls.push(new Ball(x, y, ballDiameter, 'red'));
+        }
+    }
+}
+
 
 
 function createCushions() {
