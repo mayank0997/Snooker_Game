@@ -73,6 +73,7 @@ function updateButtons() {
 
 
 function initializeBalls(mode) {
+    console.log("Initializing balls in mode: " + mode);
     // Clear existing balls
     World.remove(world, balls.map(ball => ball.body));
     balls = [];
@@ -289,7 +290,6 @@ function animateCueHit() {
 
         if (cueBall) {
             var distance = dist(cueTipX, cueTipY, cueBall.body.position.x, cueBall.body.position.y);
-            console.log("Distance to cue ball from tip:", distance);
             if (distance < 18 * scale) {
                 var forceDirection = p5.Vector.fromAngle(cue.angle);
                 var forceMagnitude = 0.002 * scale;

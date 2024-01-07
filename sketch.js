@@ -49,6 +49,7 @@ var promptMessage;
 var pottedBallsHistory;
 
 function setup() {
+    console.log("Setup started");
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
     engine = Engine.create();
@@ -80,6 +81,7 @@ function setup() {
     pottedBallsHistory = [];
 
     Events.on(engine, 'collisionStart', function (event) {
+        console.log("Collision detected");
         var pairs = event.pairs;
 
         for (var i = 0; i < pairs.length; i++) {
@@ -105,16 +107,23 @@ function setup() {
     // Additional buttons for ball placement modes
     randomRedsButton = createButton('Random Reds');
     randomRedsButton.position(10, canvasHeight - 60);
-    randomRedsButton.mousePressed(() => initializeBalls('randomReds'));
+    randomRedsButton.mousePressed(() => {
+        console.log("Random Reds mode selected");
+        initializeBalls('randomReds');
+    });
 
     randomAllButton = createButton('Random All');
     randomAllButton.position(10, canvasHeight - 90);
-    randomAllButton.mousePressed(() => initializeBalls('randomAll'));
-
+    randomAllButton.mousePressed(() => {
+        console.log("Random All mode selected");
+        initializeBalls('randomAll');
+    });
     updateButtons();
+    console.log("Setup completed");
 }
 
 function resetGame() {
+    console.log("Reset Game");
     if (cueBall) {
         World.remove(world, cueBall.body);
         cueBall = null;
