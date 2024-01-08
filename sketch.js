@@ -1,3 +1,20 @@
+/*
+
+Midterm Coursework Report
+In this midterm coursework, I implemented a snooker game using p5.js and matter.js. I have used p5.js for all the drawing and used matter.js to implement the physics. 
+These are the design and gaming aspects:
+•	Table and Balls: The snooker table was designed to maintain a realistic aspect ratio (12 ft x 6 ft), with adjustable pixel dimensions. The balls, approximately 2 inches in diameter, were scaled as per the table width, adhering to the formula: ball diameter = table width / 36. This dynamic sizing adds to the uniqueness of the application, allowing the game to adapt to different screen sizes. All the balls are constrained within the table.
+•	Game Modes and Interactions: The game features three modes: standard setup, random reds, and random all. These modes are activated using key interactions ("a" for Random All, "r" for Random Reds, and "g" for Reset Game). I have used the random() function from the p5.js library to come up with random locations in the table by specifying the table’s bounds.
+•	Cue implementation: The cue is always drawn. The initial position is to the left of the table. The cue can be dragged to the desired location using the mouse. It is confined to a certain region within the canvas. The cue strikes when the space bar is pressed. The tip of the cue has to be close enough to the cue ball for a successful strike. The cue always ends up back in the initial position after a successful strike.
+•	Cue ball implementation: The user is prompted to place the ball on the table using the mouse when the game starts and every time the cue ball is pocketed. It can also be dragged anywhere in the table using the mouse.
+•	Balls and Pockets Interaction: Red balls are removed from the array once pocketed. Coloured balls, when pocketed, are returned to their original positions. A unique mistake prompt notifies users when two consecutive, coloured balls are pocketed.
+•	Scoring: I have implemented scoring based on the snooker rules that I could find online.
+•	Prompts: The prompts are meant to alert the user of the type of impact of the cue ball.
+Extension:
+For the extension, I wanted to implement dynamic resizing. For instance, if a user strikes a cue ball, then resizes the window, the game play should not be affected and the appropriate elements of the game including the physics should be maintained. Unfortunately, I tried doing this in many ways by storing the relative positions and motion, reinitializing everything based on the relative values but could not finish this. So, I decided to keep the resizing functionality. The game can be played in windows of different sizes, but the game restarts every time the window is resized. 
+
+ */
+
 //global variables 
 
 //matter.js 
