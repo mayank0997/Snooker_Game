@@ -48,30 +48,6 @@ function createPockets() {
     }
 }
 
-function updateButtons() {
-    if (!resetButton) {
-        resetButton = createButton('Reset Game');
-        resetButton.mousePressed(resetGame);
-    }
-    resetButton.position(10, canvasHeight - 30);
-    resetButton.style('font-size', max(10, scale * 8) + 'px');
-
-    if (!randomRedsButton) {
-        randomRedsButton = createButton('Random Reds');
-        randomRedsButton.mousePressed(() => initializeBalls('randomReds'));
-    }
-    randomRedsButton.position(10, canvasHeight - 60);
-    randomRedsButton.style('font-size', max(10, scale * 8) + 'px');
-
-    if (!randomAllButton) {
-        randomAllButton = createButton('Random All');
-        randomAllButton.mousePressed(() => initializeBalls('randomAll'));
-    }
-    randomAllButton.position(10, canvasHeight - 90);
-    randomAllButton.style('font-size', max(10, scale * 8) + 'px');
-}
-
-
 function initializeBalls(mode) {
     console.log("Initializing balls in mode: " + mode);
     // Clear existing balls

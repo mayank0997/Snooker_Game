@@ -41,8 +41,6 @@ var isCuePullingBack = false;
 
 const ROTATION_STEP = 0.1; // The angle in radians for each step
 
-var resetButton, randomAllButton, randomRedsButton;
-
 var score;
 var promptMessage;
 
@@ -53,34 +51,6 @@ function setup() {
     resizeSketch();
     createCanvas(canvasWidth, canvasHeight);
 
-    if (resetButton)
-        resetButton.remove();
-    if (randomAllButton)
-        randomAllButton.remove();
-    if (randomRedsButton)
-        randomRedsButton.remove();
-
-    // Create reset button
-    resetButton = createButton('Reset Game');
-    resetButton.position(10, canvasHeight - 30);
-    resetButton.mousePressed(resetGame);
-
-    // Additional buttons for ball placement modes
-    randomRedsButton = createButton('Random Reds');
-    randomRedsButton.position(10, canvasHeight - 60);
-    randomRedsButton.mousePressed(() => {
-        console.log("Random Reds mode selected");
-        initializeBalls('randomReds');
-    });
-
-    randomAllButton = createButton('Random All');
-    randomAllButton.position(10, canvasHeight - 90);
-    randomAllButton.mousePressed(() => {
-        console.log("Random All mode selected");
-        initializeBalls('randomAll');
-    });
-    updateButtons();
-
     engine = Engine.create();
     engine.gravity.x = 0;
     engine.gravity.y = 0;
@@ -88,10 +58,6 @@ function setup() {
     drawTable();
     balls = [];
     initializeBalls('start');
-
-    // Define starting position for the cue ball
-    var cueBallStartX = cueLength * 1.55;
-    var cueBallStartY = canvasHeight / 2;
 
     isCueBallPocketed = true;
     cushions = [];
@@ -158,6 +124,9 @@ function draw() {
     textAlign(CENTER, BOTTOM);
     text(promptMessage, canvasWidth / 2, canvasHeight - 10);
 
+    textAlign(LEFT, BOTTOM);
+    text("Key Controls:\n- 'A': Random All\n- 'R': Random Reds\n- 'G': Reset Game", 10, canvasHeight - 70);
+
     drawTable();
     cushions.forEach(cushion => cushion.draw());
     pockets.forEach(pocket => pocket.draw());
@@ -187,12 +156,6 @@ function draw() {
 
 
 function windowResized() {
-    if (resetButton)
-        resetButton.remove();
-    if (randomAllButton)
-        randomAllButton.remove();
-    if (randomRedsButton)
-        randomRedsButton.remove();
     cueBall = null;
     setup();
 }
@@ -292,6 +255,15 @@ function keyPressed() {
         if (!isCueHitting) {
             hitCueBall();
         }
+    } else if (key === 'a' || key === 'A') {
+        console.log("Random All mode selected");
+        initializeBalls('randomAll');
+    } else if (key === 'r' || key === 'R') {
+        console.log("Random Reds mode selected");
+        initializeBalls('randomReds');
+    } else if (key === 'g' || key === 'G') {
+        console.log("Reset Game");
+        resetGame();
     }
 }
 
